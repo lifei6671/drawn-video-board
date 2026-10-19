@@ -1,0 +1,803 @@
+{
+  "source_head": "f7780ef08cc2c752806e49805f5f696bfcd020de",
+  "files": [
+    {
+      "path": ".gitignore",
+      "source_sha256": "4358efc51c6ff0d285322f2f1cb2f5ad325a6a9407fdae360b4fc65d81cc393f",
+      "migrated_sha256": "4358efc51c6ff0d285322f2f1cb2f5ad325a6a9407fdae360b4fc65d81cc393f",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "LICENSE",
+      "source_sha256": "2351d8077d06a507035f4d1f991703812d5e715c260aad3b26d652d783d1f834",
+      "migrated_sha256": "2351d8077d06a507035f4d1f991703812d5e715c260aad3b26d652d783d1f834",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "README.en.md",
+      "source_sha256": "1a3d8dced1594b7eb4b93034b57ea21306e0c4b309d01275d7ee4fedf0e5afcc",
+      "migrated_sha256": "1a3d8dced1594b7eb4b93034b57ea21306e0c4b309d01275d7ee4fedf0e5afcc",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "README.md",
+      "source_sha256": "f5f7538234d6f367c7158180075f127914ee6a4f1ed494cd61917da31563a112",
+      "migrated_sha256": "f5f7538234d6f367c7158180075f127914ee6a4f1ed494cd61917da31563a112",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "SECURITY.md",
+      "source_sha256": "2f30ad0d843100e6ff29e0c3cdd34f66725d68cfaa0b31f0596757b9eea249f1",
+      "migrated_sha256": "2f30ad0d843100e6ff29e0c3cdd34f66725d68cfaa0b31f0596757b9eea249f1",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "SKILL.md",
+      "source_sha256": "4eac76102d2dd888991d58c69d947832db1fe8353896a31d5b733f1156b73eba",
+      "migrated_sha256": "4eac76102d2dd888991d58c69d947832db1fe8353896a31d5b733f1156b73eba",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "source_sha256": "426bdd8c785c9086f40754f50858eb3563b16384822284b38497fecb59cb854d",
+      "migrated_sha256": "426bdd8c785c9086f40754f50858eb3563b16384822284b38497fecb59cb854d",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/cs-board-cover.svg",
+      "source_sha256": "a037a22f4fe801827fa787d67682bc5408a24182fcaaaa61163fe784b361c04e",
+      "migrated_sha256": "a037a22f4fe801827fa787d67682bc5408a24182fcaaaa61163fe784b361c04e",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/cs-board-pipeline.en.svg",
+      "source_sha256": "b311ce6656733f900ad4e73a41737f111640ab0dca626c3c7e8cda1afa5a4c72",
+      "migrated_sha256": "b311ce6656733f900ad4e73a41737f111640ab0dca626c3c7e8cda1afa5a4c72",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/cs-board-pipeline.svg",
+      "source_sha256": "4c706236f069530962e8c366e1165cbd888976b153e243dd7cb73c8731e98ad7",
+      "migrated_sha256": "4c706236f069530962e8c366e1165cbd888976b153e243dd7cb73c8731e98ad7",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/drawing-hand-clean.png",
+      "source_sha256": "19564025bde230e177e10a2dbc029edd494addb5954ef3038817d3a0a9ba01a5",
+      "migrated_sha256": "19564025bde230e177e10a2dbc029edd494addb5954ef3038817d3a0a9ba01a5",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/drawing-hand.png",
+      "source_sha256": "978ee3ca979e0bf3f0b6187926828c30464adafbb0a6bbb61c9dbe327d3bfd61",
+      "migrated_sha256": "978ee3ca979e0bf3f0b6187926828c30464adafbb0a6bbb61c9dbe327d3bfd61",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/preview.html",
+      "source_sha256": "83bbd0c1ff1fd58bcd061aeb453f210a3a6f5977f9c2ac5917be963c87db2ed0",
+      "migrated_sha256": "83bbd0c1ff1fd58bcd061aeb453f210a3a6f5977f9c2ac5917be963c87db2ed0",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/sponsors/metaso.png",
+      "source_sha256": "b41fa931ad6943f00cd13f2dd38f4e50aa5bbba379b1fd2c3d69c07e7a7ff359",
+      "migrated_sha256": "b41fa931ad6943f00cd13f2dd38f4e50aa5bbba379b1fd2c3d69c07e7a7ff359",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/LICENSE",
+      "source_sha256": "aa2f3f450816389aebe52d1801ae9a7bcf87bd150c6cb633efc1f37fd0b4a6c7",
+      "migrated_sha256": "aa2f3f450816389aebe52d1801ae9a7bcf87bd150c6cb633efc1f37fd0b4a6c7",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/SOURCE.md",
+      "source_sha256": "c4af66cf6c54c3a15ab3e604fd3db581b9ad90c06b9fb069cc82f0f6ccf4e65d",
+      "migrated_sha256": "c4af66cf6c54c3a15ab3e604fd3db581b9ad90c06b9fb069cc82f0f6ccf4e65d",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/explainer-cost-comparison.png",
+      "source_sha256": "6bec7b5c8688fe1ef19d3bbda5fabadda63c52f45432448f7889041c79677057",
+      "migrated_sha256": "6bec7b5c8688fe1ef19d3bbda5fabadda63c52f45432448f7889041c79677057",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/feedback-loop.png",
+      "source_sha256": "6ffc161c9da2ac7d098d546b53846f4f5bb9d2de0faf7de87d07eb75bc164490",
+      "migrated_sha256": "6ffc161c9da2ac7d098d546b53846f4f5bb9d2de0faf7de87d07eb75bc164490",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/from-complex-to-clear.png",
+      "source_sha256": "3756454167346eaa3b9a7cb92b8b2837fd84efadf558eebea4cb7eb459653dc0",
+      "migrated_sha256": "3756454167346eaa3b9a7cb92b8b2837fd84efadf558eebea4cb7eb459653dc0",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/pipeline-bottleneck.png",
+      "source_sha256": "25610cc62a3fd413bdf65534539423d8988331da2fabf42f3148c6777e920c5a",
+      "migrated_sha256": "25610cc62a3fd413bdf65534539423d8988331da2fabf42f3148c6777e920c5a",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/oil-visual/transparent-illustration.png",
+      "source_sha256": "b5a4cda78a10f988ecba3bcb7aabac60ed72d49a8d17589486c13cc14b37406c",
+      "migrated_sha256": "b5a4cda78a10f988ecba3bcb7aabac60ed72d49a8d17589486c13cc14b37406c",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/01-cause-heart-vs-wound.png",
+      "source_sha256": "76b7b5ec8349e673fd8c39249724be703d5e2884f71cadb1e225d81dcd5b4b22",
+      "migrated_sha256": "76b7b5ec8349e673fd8c39249724be703d5e2884f71cadb1e225d81dcd5b4b22",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/02-balance-many-forces.png",
+      "source_sha256": "39caefa6ae2e32326fcc8a4ddb00669ea3a9e8e6871710cda09ef6a7cf71c336",
+      "migrated_sha256": "39caefa6ae2e32326fcc8a4ddb00669ea3a9e8e6871710cda09ef6a7cf71c336",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/03-process-machine.png",
+      "source_sha256": "e958a37f2f5b53a619d9a6285eaa2091e487d9d7e4da8dc3142c534ca2bad999",
+      "migrated_sha256": "e958a37f2f5b53a619d9a6285eaa2091e487d9d7e4da8dc3142c534ca2bad999",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/04-overload-pushback.png",
+      "source_sha256": "4271d07bf971cea7ab569eaebbb4d427766ad2736d2da1eb82b648318041bc23",
+      "migrated_sha256": "4271d07bf971cea7ab569eaebbb4d427766ad2736d2da1eb82b648318041bc23",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/05-choice-black-white.png",
+      "source_sha256": "5f8f4af3e27b8bcdf45c3b96f0708bada3863327fcbdb4d831604551f68641bc",
+      "migrated_sha256": "5f8f4af3e27b8bcdf45c3b96f0708bada3863327fcbdb4d831604551f68641bc",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/06-work-stress.png",
+      "source_sha256": "8a00a64d05d0b612b55e099ea5e0e425ebd54dae1cf853041bf432db61d558ae",
+      "migrated_sha256": "8a00a64d05d0b612b55e099ea5e0e425ebd54dae1cf853041bf432db61d558ae",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/07-scale-values.png",
+      "source_sha256": "16c85a0b1679f6590054c664723d0139f9f56921732062f70ad2b13ad88124d2",
+      "migrated_sha256": "16c85a0b1679f6590054c664723d0139f9f56921732062f70ad2b13ad88124d2",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/08-dual-boxes.png",
+      "source_sha256": "ff05895ff85e3c1eea4fb166ed3bf71bd3572b7fda8e9b67945fb8659b8f3042",
+      "migrated_sha256": "ff05895ff85e3c1eea4fb166ed3bf71bd3572b7fda8e9b67945fb8659b8f3042",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/09-road-between-extremes.png",
+      "source_sha256": "e9ecf050f6cdc9a8e7c7fff79bbf9b310fb598710c7d30b319ea666b91b19fbf",
+      "migrated_sha256": "e9ecf050f6cdc9a8e7c7fff79bbf9b310fb598710c7d30b319ea666b91b19fbf",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "assets/style-references/paper-metaphor/10-boundary-two-crowds.png",
+      "source_sha256": "985a050947b75bbeac66dcb4bd2f2314606b915c11a791c56bf6b2814b7b6147",
+      "migrated_sha256": "985a050947b75bbeac66dcb4bd2f2314606b915c11a791c56bf6b2814b7b6147",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/generation-history.png",
+      "source_sha256": "c710658ff25f847f887530c89ff6e9aa982fbed7e8d90a87c9a9fd98b5a8b7eb",
+      "migrated_sha256": "c710658ff25f847f887530c89ff6e9aa982fbed7e8d90a87c9a9fd98b5a8b7eb",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/image-generator.png",
+      "source_sha256": "a816692ecfa047967d3612379eac778de95ca74f176b9594b8bdf01bde964c33",
+      "migrated_sha256": "a816692ecfa047967d3612379eac778de95ca74f176b9594b8bdf01bde964c33",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/style-library.png",
+      "source_sha256": "27701b1446dc783022e713614f9bce31ddcab3aacf0805d4da7f480d15333106",
+      "migrated_sha256": "27701b1446dc783022e713614f9bce31ddcab3aacf0805d4da7f480d15333106",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/task-detail.png",
+      "source_sha256": "b8982cbdb6f1c8e1763f9f4179af9a8e0b280a8c5328b51ba3831752cdc8bc04",
+      "migrated_sha256": "b8982cbdb6f1c8e1763f9f4179af9a8e0b280a8c5328b51ba3831752cdc8bc04",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/tts-settings.png",
+      "source_sha256": "c1bc418110f4d06878349c050d68caa5de88f4c65858eab0129e4a623688089a",
+      "migrated_sha256": "c1bc418110f4d06878349c050d68caa5de88f4c65858eab0129e4a623688089a",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/voice-library-page-2.png",
+      "source_sha256": "37e7538ac61a1125c9c81de440bab26b413f7df78a328ec6ed9ae576affbae62",
+      "migrated_sha256": "37e7538ac61a1125c9c81de440bab26b413f7df78a328ec6ed9ae576affbae62",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/voice-library-page-3.png",
+      "source_sha256": "6fff510d60f16530b44e15862b95bd0b08443fe5a430fd516a99dce8448fedea",
+      "migrated_sha256": "6fff510d60f16530b44e15862b95bd0b08443fe5a430fd516a99dce8448fedea",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/voice-library-page-4.png",
+      "source_sha256": "2dfd3c6d29d8c2ef842afc78ede07fa5de709b84209f792be59e56b40a2ad37c",
+      "migrated_sha256": "2dfd3c6d29d8c2ef842afc78ede07fa5de709b84209f792be59e56b40a2ad37c",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/voice-library-page-5.png",
+      "source_sha256": "84cb9f0bf0afcceca9afe00bf8be74374c7a0a066034c5a8ad771012ad39b826",
+      "migrated_sha256": "84cb9f0bf0afcceca9afe00bf8be74374c7a0a066034c5a8ad771012ad39b826",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/screenshots/voice-library.png",
+      "source_sha256": "d730a1e7985d34dac3d8334fd527f77c6fd408be65b3944f5efbf4cca833cea2",
+      "migrated_sha256": "d730a1e7985d34dac3d8334fd527f77c6fd408be65b3944f5efbf4cca833cea2",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "docs/semantic-timing-contract.md",
+      "source_sha256": "03e897219718d387f19cb0ead33d00506b0040a3973690f36e876a992c5fb041",
+      "migrated_sha256": "03e897219718d387f19cb0ead33d00506b0040a3973690f36e876a992c5fb041",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "examples/scene-01-monkey-mountain-banana-whiteboard.gif",
+      "source_sha256": "0643cd0cde391b5344e019410bf969854b61eae3f27e2fe2bae65807de5ad965",
+      "migrated_sha256": "0643cd0cde391b5344e019410bf969854b61eae3f27e2fe2bae65807de5ad965",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "examples/scene-01-monkey-mountain-banana.annotation.json",
+      "source_sha256": "39703ae1c9f5b4f76b7ae6024c6a72a24b5f9bbea9eb3b074a33b0c6783a97f3",
+      "migrated_sha256": "39703ae1c9f5b4f76b7ae6024c6a72a24b5f9bbea9eb3b074a33b0c6783a97f3",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "examples/scene-01-monkey-mountain-banana.png",
+      "source_sha256": "bbe63984c858fbb3ebbe844fe8dba52d1d92cb5321a71ad19e2479290385b611",
+      "migrated_sha256": "bbe63984c858fbb3ebbe844fe8dba52d1d92cb5321a71ad19e2479290385b611",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "examples/scene-01-monkey-mountain-stream.gif",
+      "source_sha256": "f2d19b31c1c2b6bbaf8e97126f45369617eaf1a1bb99c08392b4d6f63c9f2d87",
+      "migrated_sha256": "f2d19b31c1c2b6bbaf8e97126f45369617eaf1a1bb99c08392b4d6f63c9f2d87",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "examples/scene-01-monkey-mountain.png",
+      "source_sha256": "255233d0e93e80bb7d14bd59b91416dbbc44446ac29b44102865a63f5079c75e",
+      "migrated_sha256": "255233d0e93e80bb7d14bd59b91416dbbc44446ac29b44102865a63f5079c75e",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "packaging/macos/CSBoardLauncher.m",
+      "source_sha256": "f6a8b6ad05ea4fd7e5616241a2c4bf2f979d0a36ec2ef1b2cc56f98294c9d16c",
+      "migrated_sha256": "f6a8b6ad05ea4fd7e5616241a2c4bf2f979d0a36ec2ef1b2cc56f98294c9d16c",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "packaging/macos/Info.plist",
+      "source_sha256": "a2adafd2c81d698237d5395b4f2d0218ea01ef98fe159827c439c0b62dea97db",
+      "migrated_sha256": "a2adafd2c81d698237d5395b4f2d0218ea01ef98fe159827c439c0b62dea97db",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "packaging/macos/README.md",
+      "source_sha256": "6e648c90899ef78f1472ad6d3c860a2e49a81d2435abb6ac7337b65e25f5f68e",
+      "migrated_sha256": "6e648c90899ef78f1472ad6d3c860a2e49a81d2435abb6ac7337b65e25f5f68e",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "packaging/macos/backend_entry.py",
+      "source_sha256": "f0289622e3b8cbe161f81d95f0d4e487e722c896d90a0292d3db359157e71434",
+      "migrated_sha256": "f0289622e3b8cbe161f81d95f0d4e487e722c896d90a0292d3db359157e71434",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "packaging/macos/build-dmg.sh",
+      "source_sha256": "25a34e8eb4caccd7061b1773b3fb3d5609f403dac312beaefc6c45fc08c84e99",
+      "migrated_sha256": "25a34e8eb4caccd7061b1773b3fb3d5609f403dac312beaefc6c45fc08c84e99",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "pronunciation.yaml",
+      "source_sha256": "5588c27d2d4ec5725b2b6fc807f84c54be7ebbb672f12a9c4f7ea7714020d0bb",
+      "migrated_sha256": "5588c27d2d4ec5725b2b6fc807f84c54be7ebbb672f12a9c4f7ea7714020d0bb",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/add_key_text.py",
+      "source_sha256": "d5d92a953c787842fbf2ccb0dd2fd7e735c0825a047b9419dda60a13c6d34bb3",
+      "migrated_sha256": "d5d92a953c787842fbf2ccb0dd2fd7e735c0825a047b9419dda60a13c6d34bb3",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/merge_scenes.py",
+      "source_sha256": "856e9146b25a5ef3090d46a77fb928ab70a5e56f82fc19a79466a481354bf2e4",
+      "migrated_sha256": "9fffea199bebaa4693a3cb8e52428d4389572e26c70764bf5334a93342d6a67d",
+      "adaptation": "Project-local concat manifest; quote escaping; continuous PyAV timestamps across clips"
+    },
+    {
+      "path": "scripts/parse_srt.py",
+      "source_sha256": "55c2100b88889db7e33a9be31299088a2f59995e16f573f0137a2792d0a9bace",
+      "migrated_sha256": "55c2100b88889db7e33a9be31299088a2f59995e16f573f0137a2792d0a9bace",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/prepare_env.py",
+      "source_sha256": "98d5cd6af7903003e0fa75520f99e8758b5b492b769cd2aacc601ff1ee9142e6",
+      "migrated_sha256": "98d5cd6af7903003e0fa75520f99e8758b5b492b769cd2aacc601ff1ee9142e6",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/render_annotation_preview.py",
+      "source_sha256": "a9bd47bbce581681563a4d659c79078e69bad921c75a2ce6010fdeab33fbf141",
+      "migrated_sha256": "a9bd47bbce581681563a4d659c79078e69bad921c75a2ce6010fdeab33fbf141",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/render_infographic.py",
+      "source_sha256": "d7c4bc1cb3e91f80bfd127e22adb48391b401ebdf820e436be7194fce4040b0c",
+      "migrated_sha256": "d7c4bc1cb3e91f80bfd127e22adb48391b401ebdf820e436be7194fce4040b0c",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/render_stream_whiteboard.py",
+      "source_sha256": "091e856a81c249883754117b13abd0db59316a0341dcf7dad6a015391f48e954",
+      "migrated_sha256": "c7cfec642bdd69a9def905b3e55e2b6df07c292948b57ff7cf7865feb816111c",
+      "adaptation": "Shared full-resolution paths and preview writer; fully occluded frame budget fix"
+    },
+    {
+      "path": "scripts/restart_backend_when_idle.ps1",
+      "source_sha256": "710029914a32116715a152d9a4d27dd750df697f7d1db4423fbfd4ee80196248",
+      "migrated_sha256": "710029914a32116715a152d9a4d27dd750df697f7d1db4423fbfd4ee80196248",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/semantic_timeline.py",
+      "source_sha256": "0e7dc13f7320d335f94a7edd960f00983221e7e4149a0fc21f1bb589098e1196",
+      "migrated_sha256": "0e7dc13f7320d335f94a7edd960f00983221e7e4149a0fc21f1bb589098e1196",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "scripts/stream_render.py",
+      "source_sha256": "13cb9d2ca492a6574145a0204612afd968d7ec64e75463ff03368467551f6a0b",
+      "migrated_sha256": "13cb9d2ca492a6574145a0204612afd968d7ec64e75463ff03368467551f6a0b",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "start-webapp.ps1",
+      "source_sha256": "f453c29fb3e887ea8d0782a569d2d2cb3b06843ff2bb46c964c2f8047c5733a7",
+      "migrated_sha256": "f453c29fb3e887ea8d0782a569d2d2cb3b06843ff2bb46c964c2f8047c5733a7",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "start-webapp.sh",
+      "source_sha256": "3031bf8d6a3e6b0fe29f50920652b39fd2df4b20bd525d016c1a0a9774ba9a40",
+      "migrated_sha256": "3031bf8d6a3e6b0fe29f50920652b39fd2df4b20bd525d016c1a0a9774ba9a40",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/fixtures/deck-layout-variety.json",
+      "source_sha256": "f8acfd573ca4f1cc3953238da978a287d3c1ae66034879a0f78a4788a9293cc1",
+      "migrated_sha256": "f8acfd573ca4f1cc3953238da978a287d3c1ae66034879a0f78a4788a9293cc1",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/fixtures/deck-overview-no-arrows.json",
+      "source_sha256": "2f988521f2f11e011679a367bb0ee8479743a01697711024477b9c856790d68f",
+      "migrated_sha256": "2f988521f2f11e011679a367bb0ee8479743a01697711024477b9c856790d68f",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/fixtures/deck-space-efficiency.json",
+      "source_sha256": "873aa903623785cc4d5a7920e98e7fd4b088e1bff5105be4746680d8928cfe31",
+      "migrated_sha256": "873aa903623785cc4d5a7920e98e7fd4b088e1bff5105be4746680d8928cfe31",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/fixtures/remotion-smoke-props.json",
+      "source_sha256": "fd2f594561ba6c01fc89d4b7664ffaae811eb67db928f1ebfc37e9739079da05",
+      "migrated_sha256": "fd2f594561ba6c01fc89d4b7664ffaae811eb67db928f1ebfc37e9739079da05",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/test_queue_resume.py",
+      "source_sha256": "c9a04f5a59071af3118f4c2da201a55ee15090b502674d8c5d7f837b84d6f0c7",
+      "migrated_sha256": "c9a04f5a59071af3118f4c2da201a55ee15090b502674d8c5d7f837b84d6f0c7",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/test_semantic_timeline.py",
+      "source_sha256": "2ae644fbac8296ef92ff7cb52be4beec9ec571af329ee6fbde1356a727076e84",
+      "migrated_sha256": "2ae644fbac8296ef92ff7cb52be4beec9ec571af329ee6fbde1356a727076e84",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "tests/test_whiteboard_timing.py",
+      "source_sha256": "0d3315de9dca0ed3ef9cbdcac504a5279320e9beab91d4052d5e607e62720d88",
+      "migrated_sha256": "0d3315de9dca0ed3ef9cbdcac504a5279320e9beab91d4052d5e607e62720d88",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/README.md",
+      "source_sha256": "31dd188900b3ac1e1d10500b64ea5072308e8b42996d7f56225516d043cee2cf",
+      "migrated_sha256": "31dd188900b3ac1e1d10500b64ea5072308e8b42996d7f56225516d043cee2cf",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/align.mjs",
+      "source_sha256": "a7179a9c345ddfab706295eae0fd923973efe3e9a455f3206a1ca4a0dcffb723",
+      "migrated_sha256": "d130f94ec78b8e5fefd42a5d487a5ade61fdfb0b76b987c9f62398aa8e680d94",
+      "adaptation": "Project-local Whisper cache root"
+    },
+    {
+      "path": "video_renderer/package-lock.json",
+      "source_sha256": "6120c4db7765d3a91d0c743443753ed59d724cea21350dc90eaef6f1713d2fa0",
+      "migrated_sha256": "6120c4db7765d3a91d0c743443753ed59d724cea21350dc90eaef6f1713d2fa0",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/package.json",
+      "source_sha256": "cb2c8a73db67fa57bf5d67e61e74a8867cb43d2ab12c4f836213b723e1f00397",
+      "migrated_sha256": "cb2c8a73db67fa57bf5d67e61e74a8867cb43d2ab12c4f836213b723e1f00397",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/render.mjs",
+      "source_sha256": "1d8d24b839639b1d9d98d0f6384ed6f43adbe3f2923038065e55ddae62e2e71f",
+      "migrated_sha256": "74a5381890190803782a1a43262dd7cb1eabd9000d38f7006e8e43edd5c7b8a3",
+      "adaptation": "Project-local bundle output; configurable CRF and concurrency; original Web defaults retained"
+    },
+    {
+      "path": "video_renderer/src/index.tsx",
+      "source_sha256": "e59aba7122a0b2fa232b7008ed13ce92fff4197e3d9c953955db743cc8b45b8b",
+      "migrated_sha256": "e59aba7122a0b2fa232b7008ed13ce92fff4197e3d9c953955db743cc8b45b8b",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/src/root.tsx",
+      "source_sha256": "ede086f06e48087dfd96acf456d0953bde7d6ea7b8b1ac88a44592b8cc14ce2b",
+      "migrated_sha256": "ede086f06e48087dfd96acf456d0953bde7d6ea7b8b1ac88a44592b8cc14ce2b",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/src/types.ts",
+      "source_sha256": "07d63c4ddfa83dbb3f5bf4acfc8c26c5ffdbacb6fdb776c70d72af8785c0ab24",
+      "migrated_sha256": "07d63c4ddfa83dbb3f5bf4acfc8c26c5ffdbacb6fdb776c70d72af8785c0ab24",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/src/video.tsx",
+      "source_sha256": "3aea1abc285b0943d018ba9b01cc6066457af50ec4512d89728cc729b1ce817e",
+      "migrated_sha256": "3aea1abc285b0943d018ba9b01cc6066457af50ec4512d89728cc729b1ce817e",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "video_renderer/tsconfig.json",
+      "source_sha256": "513e95f0f02c498f871965ca476d36e3ef73b7ab9c281529048a18c15c8037f9",
+      "migrated_sha256": "513e95f0f02c498f871965ca476d36e3ef73b7ab9c281529048a18c15c8037f9",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/.gitignore",
+      "source_sha256": "143b0d35966ca049441511ea972080e1a9068eed25384d62a0d99ec5128d5768",
+      "migrated_sha256": "143b0d35966ca049441511ea972080e1a9068eed25384d62a0d99ec5128d5768",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/.openai/hosting.json",
+      "source_sha256": "d2841f8a91a91bab4f4a1e27671e7d3fe8f02261eb41996f43ac61e6970a9d74",
+      "migrated_sha256": "d2841f8a91a91bab4f4a1e27671e7d3fe8f02261eb41996f43ac61e6970a9d74",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/README.md",
+      "source_sha256": "151dba6f26d59ba6ce58922d3482df05c29375b7cfd66c272614cc6600f9a4eb",
+      "migrated_sha256": "151dba6f26d59ba6ce58922d3482df05c29375b7cfd66c272614cc6600f9a4eb",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/brand.css",
+      "source_sha256": "39f0d4d5ed4558c4b1ba9eaa89b0607fbb51053105eb97e322368396d12f1aba",
+      "migrated_sha256": "39f0d4d5ed4558c4b1ba9eaa89b0607fbb51053105eb97e322368396d12f1aba",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/chatgpt-auth.ts",
+      "source_sha256": "e19651c2d1db12696883ae3eb79d4f09dce249f7afa1144a62d544e2e18299ca",
+      "migrated_sha256": "e19651c2d1db12696883ae3eb79d4f09dce249f7afa1144a62d544e2e18299ca",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/globals.css",
+      "source_sha256": "9e6b60a10414ebf20cede04d94acd249a1af3f99414b710268325205c69ae665",
+      "migrated_sha256": "9e6b60a10414ebf20cede04d94acd249a1af3f99414b710268325205c69ae665",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/image-generator/layout.tsx",
+      "source_sha256": "cbe43a4eac9c08f3d64892b37aafd393b3adaa3c8f66ab5274c1f15af7b86934",
+      "migrated_sha256": "cbe43a4eac9c08f3d64892b37aafd393b3adaa3c8f66ab5274c1f15af7b86934",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/image-generator/page.module.css",
+      "source_sha256": "63ec275ec71a91adba5928fa46e1b244c844e0a54de9152948880d7117928faf",
+      "migrated_sha256": "63ec275ec71a91adba5928fa46e1b244c844e0a54de9152948880d7117928faf",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/image-generator/page.tsx",
+      "source_sha256": "4b8d05baf615dcf1cac82eb98e6194fa779dea1dbe8f1dbcd40a9980a7737c8a",
+      "migrated_sha256": "4b8d05baf615dcf1cac82eb98e6194fa779dea1dbe8f1dbcd40a9980a7737c8a",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/layout.tsx",
+      "source_sha256": "b7dcb01d905d37cc4a93b34a6328f14317f4c06dbd9ddfb16cd4b3a0cfd672ff",
+      "migrated_sha256": "b7dcb01d905d37cc4a93b34a6328f14317f4c06dbd9ddfb16cd4b3a0cfd672ff",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/library-pages.tsx",
+      "source_sha256": "fb60ddc5139c9c05490c342a785695c4a28b7f1d594272ab8ece571e6ef78bb0",
+      "migrated_sha256": "fb60ddc5139c9c05490c342a785695c4a28b7f1d594272ab8ece571e6ef78bb0",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/page.tsx",
+      "source_sha256": "1644b434315caf63183308e19317d66c2ad18adec95178fc15152647bc1753b3",
+      "migrated_sha256": "1644b434315caf63183308e19317d66c2ad18adec95178fc15152647bc1753b3",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/styles/page.tsx",
+      "source_sha256": "b25809635e8f6e153dc4d05f5677508b3c9c6104e93d075b8cd14ea67560e6c1",
+      "migrated_sha256": "b25809635e8f6e153dc4d05f5677508b3c9c6104e93d075b8cd14ea67560e6c1",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/tts/page.tsx",
+      "source_sha256": "9ef1af55ae104507254d2c2b3d752792ad668b1b129eb5075dbf34b367710ebf",
+      "migrated_sha256": "9ef1af55ae104507254d2c2b3d752792ad668b1b129eb5075dbf34b367710ebf",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/app/voices/page.tsx",
+      "source_sha256": "b6ec0604fefda60d438a36ee8ef6e5a0609bae33e5110efc79c85314088cede7",
+      "migrated_sha256": "b6ec0604fefda60d438a36ee8ef6e5a0609bae33e5110efc79c85314088cede7",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/db/index.ts",
+      "source_sha256": "effa59e46bcbb42dfb7b46911e809a1de0f2c37df1fd935e3dca89023eaf97e4",
+      "migrated_sha256": "effa59e46bcbb42dfb7b46911e809a1de0f2c37df1fd935e3dca89023eaf97e4",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/db/schema.ts",
+      "source_sha256": "48b4f7fafee1f2720b8977ba31bc0cf03dedb7ea8826c4bcbc8dfd74f2d8744f",
+      "migrated_sha256": "48b4f7fafee1f2720b8977ba31bc0cf03dedb7ea8826c4bcbc8dfd74f2d8744f",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/drizzle.config.ts",
+      "source_sha256": "73d0807c58e541dc3eaf175909fb5acc966faed61f74ff659d9d55027bf3e25b",
+      "migrated_sha256": "73d0807c58e541dc3eaf175909fb5acc966faed61f74ff659d9d55027bf3e25b",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/drizzle/meta/_journal.json",
+      "source_sha256": "5a5f57f8f48fcf1d065725c0f3dab19e590e96e7e1e5bf8ddff17339a0de8d9a",
+      "migrated_sha256": "5a5f57f8f48fcf1d065725c0f3dab19e590e96e7e1e5bf8ddff17339a0de8d9a",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/eslint.config.mjs",
+      "source_sha256": "30e084654e5072ab8d1e780e0782a155b587213d36677fed7b07026edc3d2366",
+      "migrated_sha256": "30e084654e5072ab8d1e780e0782a155b587213d36677fed7b07026edc3d2366",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/examples/d1/app/api/notes/route.ts",
+      "source_sha256": "b0b134b9b0b4a9f5947abbd13fd4425b88b59c64f91db1aacb0cecbc16c38f45",
+      "migrated_sha256": "b0b134b9b0b4a9f5947abbd13fd4425b88b59c64f91db1aacb0cecbc16c38f45",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/examples/d1/db/schema.ts",
+      "source_sha256": "1acd70317bcaf22cb140436fb47754c2144e7c2adfc59a3f427ecb1d816fa0f3",
+      "migrated_sha256": "1acd70317bcaf22cb140436fb47754c2144e7c2adfc59a3f427ecb1d816fa0f3",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/next-env.d.ts",
+      "source_sha256": "74ecf1a3bc702f296a7363c9ec6fe560278e32bd7f44c1bbac987f81ef7aa6df",
+      "migrated_sha256": "74ecf1a3bc702f296a7363c9ec6fe560278e32bd7f44c1bbac987f81ef7aa6df",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/next.config.ts",
+      "source_sha256": "a972c4f0ffa6dd714e7909b02d1ac19d2f2fe3d01f191efd2c5054bd6f142ec1",
+      "migrated_sha256": "a972c4f0ffa6dd714e7909b02d1ac19d2f2fe3d01f191efd2c5054bd6f142ec1",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/package-lock.json",
+      "source_sha256": "2a050e359237571076c16f0073cd3aa296170ea1f01b9d138c41e6e019125746",
+      "migrated_sha256": "2a050e359237571076c16f0073cd3aa296170ea1f01b9d138c41e6e019125746",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/package.json",
+      "source_sha256": "ac1761ca49d5cc70f7a3362234b29b90e85aac59b8c49ce3e1b8518799231557",
+      "migrated_sha256": "ac1761ca49d5cc70f7a3362234b29b90e85aac59b8c49ce3e1b8518799231557",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/postcss.config.mjs",
+      "source_sha256": "7b299d3d3b16699ddda397c0b2373b3af4f25f8fc9ccc9b3d9e64ef083bc1c21",
+      "migrated_sha256": "7b299d3d3b16699ddda397c0b2373b3af4f25f8fc9ccc9b3d9e64ef083bc1c21",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/brand-mark.png",
+      "source_sha256": "8337f58597fd11f788fed3fc37aee844dbb2480b64601af43c4f1f3e5a7085e6",
+      "migrated_sha256": "8337f58597fd11f788fed3fc37aee844dbb2480b64601af43c4f1f3e5a7085e6",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/favicon.svg",
+      "source_sha256": "3e8863288c2d43dd33d2a71de317dcf9198f09932ea8d61e0def1b846a865435",
+      "migrated_sha256": "3e8863288c2d43dd33d2a71de317dcf9198f09932ea8d61e0def1b846a865435",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/file.svg",
+      "source_sha256": "81a9ce5ca9bc60870c1d72c0fd5b98b2bc5c8c02b0e04fefeab9efcc11277228",
+      "migrated_sha256": "81a9ce5ca9bc60870c1d72c0fd5b98b2bc5c8c02b0e04fefeab9efcc11277228",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/globe.svg",
+      "source_sha256": "13187c071b4d369df3a7a179f69a927165bf624e1a524ee6c93b7d3be75d6fc8",
+      "migrated_sha256": "13187c071b4d369df3a7a179f69a927165bf624e1a524ee6c93b7d3be75d6fc8",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/black-gold-tech.webp",
+      "source_sha256": "994712cbe54c96dfb526d12cd63a42a617df98adcff0a9c7e102c2ae65fd4489",
+      "migrated_sha256": "994712cbe54c96dfb526d12cd63a42a617df98adcff0a9c7e102c2ae65fd4489",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/business-doodle.webp",
+      "source_sha256": "991f11f77825c2c4dd9793a53d0e3ab95ae644f0614c3aeb3b3b54e55838d410",
+      "migrated_sha256": "991f11f77825c2c4dd9793a53d0e3ab95ae644f0614c3aeb3b3b54e55838d410",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/clay-3d.webp",
+      "source_sha256": "92e783fb1aaf54682c55bf80311439b62b12241a4ab6bc91f1ac887d91a71f72",
+      "migrated_sha256": "92e783fb1aaf54682c55bf80311439b62b12241a4ab6bc91f1ac887d91a71f72",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/cyber-neon.webp",
+      "source_sha256": "76855dbb812ebe3c2f4da40959d6f016037917da6cd6e93ec2b0e95e1491ec97",
+      "migrated_sha256": "76855dbb812ebe3c2f4da40959d6f016037917da6cd6e93ec2b0e95e1491ec97",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/guofeng-flat.webp",
+      "source_sha256": "be243c156c2addb0f6ae2d6513d05d569d0a0a9866ffc59d5d347a90a9d8bcd5",
+      "migrated_sha256": "be243c156c2addb0f6ae2d6513d05d569d0a0a9866ffc59d5d347a90a9d8bcd5",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/healing-journal.webp",
+      "source_sha256": "750a43ce3ea70876cb790e5f2f41830bc1030ef389c5cd716def05ebd43ed31c",
+      "migrated_sha256": "750a43ce3ea70876cb790e5f2f41830bc1030ef389c5cd716def05ebd43ed31c",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/minimal-whiteboard.webp",
+      "source_sha256": "8cb7474bd0eba2be58838f5e33c6d523379b958ea997d984f15f9903a7375d0e",
+      "migrated_sha256": "8cb7474bd0eba2be58838f5e33c6d523379b958ea997d984f15f9903a7375d0e",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/oil-visual.png",
+      "source_sha256": "3756454167346eaa3b9a7cb92b8b2837fd84efadf558eebea4cb7eb459653dc0",
+      "migrated_sha256": "3756454167346eaa3b9a7cb92b8b2837fd84efadf558eebea4cb7eb459653dc0",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/paper-metaphor.png",
+      "source_sha256": "e958a37f2f5b53a619d9a6285eaa2091e487d9d7e4da8dc3142c534ca2bad999",
+      "migrated_sha256": "e958a37f2f5b53a619d9a6285eaa2091e487d9d7e4da8dc3142c534ca2bad999",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/retro-collage.webp",
+      "source_sha256": "867877b883438576ffbf79ebfe6aa356bb48f7eea44e28a087d0b957eccb246f",
+      "migrated_sha256": "867877b883438576ffbf79ebfe6aa356bb48f7eea44e28a087d0b957eccb246f",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/viral-pop.webp",
+      "source_sha256": "8bb05e2a85457a03e3999c53b1453dc76baf2991f87deedc9f106ebafac84e3c",
+      "migrated_sha256": "8bb05e2a85457a03e3999c53b1453dc76baf2991f87deedc9f106ebafac84e3c",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/styles/warm-pencil.webp",
+      "source_sha256": "d6848f77cb165ea663c8a4705aaf83a1a4f555f831f117e5314716ae5c055ca3",
+      "migrated_sha256": "d6848f77cb165ea663c8a4705aaf83a1a4f555f831f117e5314716ae5c055ca3",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/public/window.svg",
+      "source_sha256": "d3cd4bf0c1123258fcc266409856e28c93d4fc1cf8476702225e17842900ca63",
+      "migrated_sha256": "d3cd4bf0c1123258fcc266409856e28c93d4fc1cf8476702225e17842900ca63",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/tests/rendered-html.test.mjs",
+      "source_sha256": "1d9024746a27ac89bc5a4e7880e6a21f9be0b9946d46ec9dba77f24a49a065df",
+      "migrated_sha256": "1d9024746a27ac89bc5a4e7880e6a21f9be0b9946d46ec9dba77f24a49a065df",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/tsconfig.json",
+      "source_sha256": "f9fdabe75eb7a192ea4c515e92ae00b84c6cb655e838e6dcc7ab17004376336d",
+      "migrated_sha256": "f9fdabe75eb7a192ea4c515e92ae00b84c6cb655e838e6dcc7ab17004376336d",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/vite.config.ts",
+      "source_sha256": "1df2f21fe9404e6f0f81dced710e18feb704702c2d7d8243913517765cae8261",
+      "migrated_sha256": "1df2f21fe9404e6f0f81dced710e18feb704702c2d7d8243913517765cae8261",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "web/worker/index.ts",
+      "source_sha256": "6f8983ab616309202039ad672b1a46a835bede1bb77636dc751613c664f969e5",
+      "migrated_sha256": "6f8983ab616309202039ad672b1a46a835bede1bb77636dc751613c664f969e5",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "webapp/requirements.txt",
+      "source_sha256": "e153c7219de77638c2e456d5a39466e931e9047d47fc38f564f3a0302772426e",
+      "migrated_sha256": "e153c7219de77638c2e456d5a39466e931e9047d47fc38f564f3a0302772426e",
+      "adaptation": "Unmodified migration"
+    },
+    {
+      "path": "webapp/server.py",
+      "source_sha256": "f45fccf4abd1dfbc9719421b97bdb6ce0bfbaaeea619da1aa4cfa624da509c7e",
+      "migrated_sha256": "fc38d95b16eeb2f846095cb8e0a59e6e00647e03f79b74d81fa31b8041094451",
+      "adaptation": "Shared original planning/composition extraction; Codex candidate input; headless import; standalone style reference; project-local Gradio download"
+    },
+    {
+      "path": "启动白板工坊.bat",
+      "source_sha256": "eea7a131acfaa2d79f34f1263b0ec68009f2ad34321d7bd0f6b573501a055033",
+      "migrated_sha256": "eea7a131acfaa2d79f34f1263b0ec68009f2ad34321d7bd0f6b573501a055033",
+      "adaptation": "Unmodified migration"
+    }
+  ]
+}
