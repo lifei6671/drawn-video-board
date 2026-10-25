@@ -49,6 +49,9 @@ def project_context(p):
         if not pronunciation.exists():
             shutil.copyfile(ROOT / "pronunciation.yaml", pronunciation)
         references = deepcopy(p.data.get("visual_references", {}))
+        from .styles import reference_path
+        reference = reference_path(p)
+        references["style_image"] = reference.relative_to(p.root).as_posix() if reference else ""
         for character in references.get("characters", []):
             for image in character.get("images", []):
                 p.path(image)
@@ -59,10 +62,8 @@ def project_context(p):
                   "VOICES_DIR": p.path("audio/original"), "CONFIG_PATH": folder / "config.json",
                   "PRONUNCIATION_PATH": pronunciation, "HAND": p.path("style/drawing-hand.png"),
                   "JOBS": {p.root.name: {"id": p.root.name, "status": "preparing",
-                            "reference_mode": "custom" if p.path("style/reference.png").exists() else "standard",
+                            "reference_mode": "custom" if reference else "standard",
                             "visual_references": references}}}
-        if p.path("style/reference.png").exists():
-            values["JOBS"][p.root.name]["visual_references"].setdefault("style_image", "style/reference.png")
         saved = {name: getattr(module, name) for name in values}
         for name, value in values.items():
             setattr(module, name, value)
@@ -78,7 +79,12 @@ def style_name(p, module):
     preset = style.get("preset")
     if preset:
         require(preset in module.BUILTIN_STYLE_BY_ID, "未知上游画风预设")
-        return module.BUILTIN_STYLE_BY_ID[preset]["name"]
+        name = module.BUILTIN_STYLE_BY_ID[preset]["name"]
+        if style.get("recipe"):
+            # Bind the approved project snapshot, not a later builtin revision.
+            module.save_custom_styles([{"id": preset, "name": name, "builtin": True,
+                                       "recipe": style["recipe"]}])
+        return name
     name = style.get("name", module.DEFAULT_STYLE)
     if name not in module.STYLE_PRESETS:
         recipe = style.get("recipe") or "；".join(f"{k}: {v}" for k, v in style.items() if k != "name")
@@ -132,6 +138,8 @@ def prompts(p):
             elif not refs and style == module.OIL_VISUAL_STYLE:
                 selected, reference_instruction = module.oil_visual_reference_context([native],
                     p.data["config"].get("render_engine") == "remotion")
+            elif not refs:
+                selected, reference_instruction = module.builtin_style_reference_context(style)
             local_refs = []
             for source in selected:
                 destination = p.path(f"style/references/{file_hash(source)[:16]}-{source.name}")

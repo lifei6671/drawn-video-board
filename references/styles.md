@@ -1,7 +1,8 @@
 # 画风及原参考库
 
-分镜批准后运行 `style list --project ...`，返回原 CS Board 的 13 个预设、原配方及预览图。
-使用 `style set --preset <原id>`，或 `style set --file <json>` 导入自定义 `name` + `recipe`。
+运行 `style list`，返回 15 个内置预设（原 13 个及新增的暖色Q版叙事漫画风、灰蓝写实叙事漫画风）、本地自定义预设、配方和参考图路径。
+列出预设不需要项目或分镜批准；原 `style list --project ...` 调用仍可用。
+分镜批准后使用 `style set --project ... --preset <id或名称>`，或 `style set --project ... --file <json>` 导入自定义 `name` + `recipe`。
 旧的 lines/palette/proportions/shading/texture/composition/complexity 详细字段同样可用。
 展示项目内画风预览和配置，经用户确认记录 style 批准。
 
@@ -9,6 +10,8 @@
 `canvas_hex` 为白板渲染底色，应与已批准画风一致。
 
 单独风格参考可导入 `style/reference.png`；角色参考放 `characters/references/`。
+用 `asset --project ... --source <图片> --dest style/reference.png [--replace]` 明确导入时，
+会重新启用这张画风图，包括此前选择无参考图预设而停用过参考图的项目。
 需要多角色或不同命名时配置 project.json.visual_references，沿用原结构：
 
 ```json
@@ -19,3 +22,79 @@
 参考路由继续使用原参考库，选中的公共图片先复制到当前项目 style/references。
 原角色与纯画风参考约束均保留，Skill 允许只给画风图而没有角色图。所有引用均为项目内相对路径。
 修改参考图/配置会使画风批准及相关图片验收失效。视觉一致性仍需实际看图。
+
+## 保存为跨项目预设
+
+自定义画风在当前项目确认并记录 style 批准后，可以保存一次，以后直接选择：
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video style save --project content/demo --name "暖纸黑线漫画"
+.\.venv\Scripts\python.exe -m cs_board_video style list
+# 新项目分镜批准后：
+.\.venv\Scripts\python.exe -m cs_board_video style set --project content/next-video --preset "暖纸黑线漫画"
+```
+
+`--name` 可省略，默认使用当前自定义画风名称；也可用保存返回的 `custom-...` id 选取。
+名称不能与内置画风名称/id 冲突，`custom-` 前缀保留给 id。同名保存默认报错；
+用户明确要求更新时加 `--replace`，新内容仍须先在来源项目获得画风批准。
+内置预设直接选择即可；`style save` 仅用于自定义配置。
+
+保存内容包括完整画风配置、画风参考图（如有）、绘制手图片和 `canvas_hex`。
+角色参考、项目文案、音频、批准记录不会进入库。没有参考图的文字配方也能保存。
+原详细字段会补出等价 recipe，后续提示词仍使用原 CS Board 生图模块。
+
+库固定保存在实际 Skill 安装目录的 `style-presets/`（与当前工作目录和项目目录无关），
+`library.json` 保存索引，`assets/` 保存素材副本，默认忽略 Git；备份或迁移时复制整个目录。
+库不会依赖来源项目中的文件，删除来源项目不影响预设。更新时原子替换索引并保留旧素材，
+失败不会发布半套预设；并发保存使用文件锁。
+
+选择自定义预设会将配方、参考图及绘制手复制到目标项目，并同步画布底色。
+项目已有角色配置保留；选择无参考图的预设会停用旧的画风参考，旧文件仍保留。
+修改库不会改变已选用它的项目；要更新项目需再次执行 style set，再审核发生变化的画风。
+选用预设不自动批准画风，已有分镜、画风和生图方式的审核顺序不变。
+
+## 暖色Q版叙事漫画风
+
+内置 id：`builtin-warm-chibi-story`，名称：`暖色Q版叙事漫画风`。
+
+配方默认用于先描轮廓、再分区上色的彩色手绘动画原画：
+
+- 奶油黄与浅杏色背景，蜂蜜金、橙棕和焦糖色为主；深褐近黑色粗描边，轮廓连续，主要形状形成封闭色块。
+- 二维赛璐璐大面积平涂，每个物体一种底色加最多一层块面阴影，极少量简单高光和椭圆投影；减少渐变与反光，不画颗粒、木纹或排线。
+- 人物约 2.5 至 3 头身，圆脸大头、短手短腿，表情鲜明；头发、衣褶、手部和机械零件简化，保留叙事所需的识别细节。
+- 只保留必要人物和道具，用动作、对比或具体物件隐喻表达观点；背景纯色或极少空间线条，主体周围留白，边界清楚，预留字幕区。
+- 人物身份、年龄和故事物件服从当前文案，不固定复用女孩、机器人或工作间。输出完整彩色原画，不画步骤图、对比拼图、画外绘制手或画笔；禁止文字、数字、Logo、水印、品牌标签、摄影写实、3D塑料感和霓虹配色。
+
+图片位于 `cs_board_video/upstream/web/public/styles/warm-chibi-story.png`，使用 2026-10-25 生成并经用户确认的
+“女孩修理机器人”简化版样图，保留生成文件原始字节；同一份图片同时承担预览和生图参考。
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video style set --project content/demo --preset "暖色Q版叙事漫画风"
+```
+
+选用后，预览图复制到项目 `style/preset-preview.png`，同时注册为项目画风参考；画布底色设为 `#FFF7D6`。
+`images prompts` 将参考图复制进项目并写入每镜 `prompt-context.json.references`，画风配方与参考图约束同时进入提示词。
+原 Web 的首次生图、单页重新生图和独立生图页也会使用此内置参考；内置画风在 Web 库改名后仍按固定 id 关联内置图片。
+用户明确导入自己的画风参考时，使用项目参考。
+已选用预设的项目保留自己的配方和参考图；需要新版时重新执行 `style set`，再确认更新后的画风。
+
+## 灰蓝写实叙事漫画风
+
+内置 id：`builtin-blue-gray-story`，名称：`灰蓝写实叙事漫画风`。
+
+- 配色：低饱和灰蓝、灰绿、暖米白，搭配浅褐木色和自然肤色，少量暗青色点缀。
+- 人物：自然写实比例，五官概括但结构可信，通过眼神、手势与姿态叙事，情绪按文案调整。
+- 线条与上色：深灰或深褐细线，轻微笔压变化；头发、衣褶和暗部使用稀疏短排线，哑光淡彩色块与大块明暗塑造体积，保留轻微纸感。
+- 光影与场景：自然侧光或窗光，暖色受光面与灰蓝阴影形成冷暖对照；日常物件与人物动作关联，透视自然，保留必要背景和字幕留白。
+- 约束：人物身份、性别、年龄、服装、情绪和场景服从文案，不固定复用男子、手机、账单或餐桌。禁止复制信封文字、衣服标志，以及文字、数字、Logo、水印、漫画边框和对白框；避免 Q 版大头、粗黑卡通描边、高饱和配色、摄影写实及 3D 塑料渲染。
+
+主图位于 `cs_board_video/upstream/web/public/styles/blue-gray-story.png`，使用 2026-10-25 生成并由用户选定的
+“街边修理自行车”手绘简化版，保留生成文件原始字节，同时用于预览和生图参考。
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video style set --project content/demo --preset "灰蓝写实叙事漫画风"
+```
+
+选用后复制预览图和完整配方到项目，将同一图片注册为画风参考，画布底色设为 `#A7B9B9`。
+`images prompts` 的每镜参考清单以及原 Web 首次生图、重新生图和独立生图入口均使用该参考图。
+内置画风在 Web 改名后继续按固定 id 关联素材；用户提供的项目参考与角色设定优先。

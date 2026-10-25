@@ -790,14 +790,26 @@
     {
       "path": "webapp/server.py",
       "source_sha256": "f45fccf4abd1dfbc9719421b97bdb6ce0bfbaaeea619da1aa4cfa624da509c7e",
-      "migrated_sha256": "fc38d95b16eeb2f846095cb8e0a59e6e00647e03f79b74d81fa31b8041094451",
-      "adaptation": "Shared original planning/composition extraction; Codex candidate input; headless import; standalone style reference; project-local Gradio download"
+      "migrated_sha256": "0853019d0aebba479b80e827582c84ae0ae02fa50b8ad1718e2f866ece3c8596",
+      "adaptation": "Shared original planning/composition extraction; Codex candidate input; headless import; standalone style reference; project-local Gradio download; user-requested warm chibi builtin style and preview/reference routing"
     },
     {
       "path": "启动白板工坊.bat",
       "source_sha256": "eea7a131acfaa2d79f34f1263b0ec68009f2ad34321d7bd0f6b573501a055033",
       "migrated_sha256": "eea7a131acfaa2d79f34f1263b0ec68009f2ad34321d7bd0f6b573501a055033",
       "adaptation": "Unmodified migration"
+    }
+  ],
+  "additions": [
+    {
+      "path": "web/public/styles/warm-chibi-story.png",
+      "sha256": "d8b61b0b36cdf00817d3ad8b63f300744c9cb0b36a554f1948ea5742262ab8c3",
+      "source": "User-approved simplified hand-drawing sample (girl repairing a robot), 2026-10-25; imagegen output bytes preserved; shared builtin preview and generation reference"
+    },
+    {
+      "path": "web/public/styles/blue-gray-story.png",
+      "sha256": "b495487306b01b9a4ae4da2c2443d281d037ccc2fdb8d7ba71be9407c902b9f3",
+      "source": "User-selected simplified hand-drawing sample (woman repairing a bicycle), 2026-10-25; imagegen output bytes preserved; builtin main image shared by preview and generation reference"
     }
   ]
 }

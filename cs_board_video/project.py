@@ -59,6 +59,33 @@ def atomic_json(path, value):
         Path(temporary).unlink(missing_ok=True)
 
 
+@contextmanager
+def file_lock(path, message):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+b") as handle:
+        try:
+            if not os.fstat(handle.fileno()).st_size:
+                handle.write(b"0")
+                handle.flush()
+            handle.seek(0)
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            raise WorkflowError(message, 5) from error
+        try:
+            yield
+        finally:
+            handle.seek(0)
+            if os.name == "nt":
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+
+
 class Project:
     def __init__(self, root):
         raw = Path(root).absolute()
@@ -92,34 +119,11 @@ class Project:
 
     @contextmanager
     def lock(self):
-        lock_path = self.path("render/command.lock")
-        lock_path.parent.mkdir(parents=True, exist_ok=True)
-        with lock_path.open("a+b") as handle:
-            handle.seek(0)
-            if not handle.read(1):
-                handle.write(b"0")
-                handle.flush()
-            handle.seek(0)
-            try:
-                if os.name == "nt":
-                    import msvcrt
-                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except OSError as error:
-                raise WorkflowError("项目正在执行其他命令", 5) from error
-            try:
-                # Reload under the lock to avoid stale read/modify/write.
-                self.data = read_json(self.path("project.json"))
-                self.approvals = read_json(self.path("approvals.json"))
-                yield self
-            finally:
-                handle.seek(0)
-                if os.name == "nt":
-                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
-                else:
-                    fcntl.flock(handle, fcntl.LOCK_UN)
+        with file_lock(self.path("render/command.lock"), "项目正在执行其他命令"):
+            # Reload under the lock to avoid stale read/modify/write.
+            self.data = read_json(self.path("project.json"))
+            self.approvals = read_json(self.path("approvals.json"))
+            yield self
 
     def hash(self, relative):
         return file_hash(self.path(relative))

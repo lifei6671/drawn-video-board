@@ -84,7 +84,36 @@ ASPECT_RATIO_SPECS: dict[str, dict[str, Any]] = {
     "1:1": {"width": 1, "height": 1, "image_size": "1024x1024", "canvas_size": (1024, 1024)},
 }
 INFOGRAPHIC_STYLE = "国风动态信息图"
+WARM_CHIBI_STYLE = "暖色Q版叙事漫画风"
+WARM_CHIBI_STYLE_ID = "builtin-warm-chibi-story"
+BLUE_GRAY_STORY_STYLE = "灰蓝写实叙事漫画风"
+BLUE_GRAY_STORY_STYLE_ID = "builtin-blue-gray-story"
 STYLE_PRESETS = {
+    BLUE_GRAY_STORY_STYLE: (
+        "低饱和灰蓝、灰绿与暖米白为主色，浅褐木色和自然肤色形成克制的冷暖对照，少量暗青色点缀。"
+        "二维写实叙事漫画，人物保持自然写实比例，五官概括但结构可信；通过眼神、手势和姿态表达情绪，情绪服从文案。"
+        "使用深灰或深褐色细线勾勒，线条略有粗细和笔压变化；衣褶、头发和物体暗部用稀疏短排线表现结构。"
+        "以哑光淡彩色块和大块明暗塑造体积，保留轻微纸感与手绘笔触，避免密集排线和粗重颗粒。"
+        "按场景使用自然侧光或窗光，浅米白受光面与灰蓝阴影相对，投影方向统一，不使用霓虹光效或强烈镜面高光。"
+        "构图重视人物动作与日常物件的关系，透视自然，背景保留必要环境线索并适度留白，预留字幕安全区。"
+        "只迁移画风；人物身份、性别、年龄、服装、情绪和场景服从本镜文案，不固定为低头看手机的男子、餐桌、账单或室内场景。"
+        "禁止照搬参考图中的信封文字、衣服标志和物件组合；禁止文字、字母、数字、Logo、水印、漫画边框和对白框。"
+        "避免Q版大头、粗黑卡通描边、高饱和配色、摄影写实和3D塑料渲染，保持安静、细腻的生活叙事质感。"
+    ),
+    WARM_CHIBI_STYLE: (
+        "适合先描轮廓、再分区上色的彩色手绘动画原画。奶油黄与浅杏色背景，蜂蜜金、橙棕和焦糖色为主；"
+        "深褐近黑色干净粗描边，轮廓连续清楚，主要形状形成封闭色块，线条略有手绘感但不毛糙。"
+        "二维赛璐璐大面积平涂，每个物体使用一种底色加最多一层块面阴影，极少量简单高光和简洁椭圆投影；"
+        "减少渐变、反光和光照变化，不画纸张颗粒、木纹、素描排线或其他细碎纹理。"
+        "人物约2.5至3头身，圆脸大头、短手短腿，五官简化、表情鲜明；头发、衣褶和手部保留少量识别线条。"
+        "只保留叙事必要的人物和道具，用清晰动作、对比关系或具体物件隐喻表达观点；"
+        "机械零件和装饰简化为少量易辨认的大形状，避免密集细节和难以辨认的遮挡。"
+        "背景使用纯色或极少空间线条交代环境，减少背景道具，主体周围留白，保留字幕安全区；"
+        "背景、主体和道具的边界清楚，便于按语义分区绘制。"
+        "只迁移画风；人物身份、年龄、道具及场景服从本镜文案，不固定复用参考图中的女孩、机器人或工作间。"
+        "输出完整彩色原画，不输出步骤图或对比拼图，不添加画外绘制手和画笔；"
+        "禁止文字、数字、Logo、水印、品牌标签、摄影写实、3D塑料感和霓虹配色。"
+    ),
     INFOGRAPHIC_STYLE: (
         "暖米白宣纸背景，深灰正文与朱红重点，低饱和靛青辅助色；"
         "固定总标题和章节标题，以知识卡片、关系线、时间轴、层级或对比结构组织观点，"
@@ -237,6 +266,22 @@ BUILTIN_STYLE_DEFINITIONS = [
         "description": "霓虹青紫 · 漫画速度线 · 未来感",
         "image_url": "/styles/cyber-neon.webp",
     },
+    {
+        "id": WARM_CHIBI_STYLE_ID,
+        "name": WARM_CHIBI_STYLE,
+        "description": "暖色Q版、封闭粗线轮廓、简洁平涂，适合手绘",
+        "image_url": "/styles/warm-chibi-story.png",
+        "use_as_reference": True,
+        "canvas_hex": "#FFF7D6",
+    },
+    {
+        "id": BLUE_GRAY_STORY_STYLE_ID,
+        "name": BLUE_GRAY_STORY_STYLE,
+        "description": "灰蓝低饱和、细线排线、自然比例与柔和侧光",
+        "image_url": "/styles/blue-gray-story.png",
+        "use_as_reference": True,
+        "canvas_hex": "#A7B9B9",
+    },
 ]
 BUILTIN_STYLE_BY_ID = {item["id"]: item for item in BUILTIN_STYLE_DEFINITIONS}
 
@@ -370,13 +415,33 @@ def style_snapshot(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def builtin_style_image_path(definition: dict[str, str]) -> Path | None:
+def builtin_style_image_path(definition: dict[str, Any]) -> Path | None:
     relative_path = definition["image_url"].lstrip("/")
     candidates = (
         ROOT / "web" / "public" / relative_path,
         ROOT / "web" / "dist" / "client" / relative_path,
     )
     return next((path for path in candidates if path.is_file()), None)
+
+
+def builtin_style_definition(style: str) -> dict[str, Any] | None:
+    for item in load_custom_styles():
+        if item.get("builtin") and (item.get("name") == style or style in item.get("aliases", [])):
+            return BUILTIN_STYLE_BY_ID.get(item["id"])
+    return next((item for item in BUILTIN_STYLE_DEFINITIONS if item["name"] == style), None)
+
+
+def builtin_style_reference_context(style: str) -> tuple[list[Path], str]:
+    definition = builtin_style_definition(style)
+    if not definition or not definition.get("use_as_reference"):
+        return [], ""
+    path = builtin_style_image_path(definition)
+    if path is None or not valid_image_file(path):
+        raise RuntimeError(f"内置画风参考图缺失或无效：{style}")
+    return [path], (
+        "输入图仅作画风参考，学习轮廓、配色、造型比例和光影；人物和道具按本镜文案重画，不照搬原场景。"
+        "忽略画面中的播放器状态、分辨率文字、标签和品牌。"
+    )
 
 
 def is_infographic_job(job_id: str) -> bool:
@@ -1642,9 +1707,12 @@ def build_image_prompt(scene: dict[str, Any], style: str, aspect_ratio: str = DE
     labels = scene.get("elements") or [scene.get("title", "场景主体")]
     count = len(labels)
     lanes = "；".join(f"第{i + 1}区：{label}" for i, label in enumerate(labels))
+    uses_builtin_reference = bool((builtin_style_definition(style) or {}).get("use_as_reference"))
     character_instruction = (
         "原文指定的人物或动物身份优先；没有指定身份且确实需要通用讲解角色时，才使用戴细圆框眼镜的圆头极简线人。暖黄边牧仅在语义合适时陪伴，不强制出现。"
         if style == OIL_VISUAL_STYLE else
+        "主角必须严格来自原文；动物、人物身份与年龄不得被替换，同一角色在所有分镜中保持一致。"
+        if uses_builtin_reference else
         "同一主角固定为：中国青年男性，短黑发，朴素深色上衣，普通人形象；不要改变年龄与外貌。"
     )
     return f"""生成一张用于中文口播的 {aspect_ratio_label(aspect_ratio)} 白板动画分镜原画。
@@ -1664,6 +1732,7 @@ def build_image_prompt(scene: dict[str, Any], style: str, aspect_ratio: str = DE
 
 def build_board_prompt(scenes: list[dict[str, Any]], style: str, reference_instruction: str = "", use_character_references: bool = False, infographic: bool = False, aspect_ratio: str = DEFAULT_ASPECT_RATIO) -> str:
     aspect_ratio = aspect_ratio_label(aspect_ratio)
+    uses_builtin_reference = bool((builtin_style_definition(style) or {}).get("use_as_reference"))
     if infographic:
         scene = scenes[0]
         elements = "、".join(scene.get("illustration_elements") or scene.get("nodes") or [])
@@ -1687,6 +1756,8 @@ PPT 已确定的视觉策略：{scene.get('visual_strategy', '左侧文字，右
         )
     panel_text = "\n".join(panels)
     style_instruction = (
+        f"视觉配方：{style_recipe(style)}"
+        if uses_builtin_reference and reference_instruction else
         f"视觉配方：{style_recipe(style)}\n{reference_instruction}"
         if style == OIL_VISUAL_STYLE and reference_instruction else
         "严格复现输入风格参考图的配色、线条粗细、材质、造型比例与构图语言；不要复制风格图里原有的人物或事件。"
@@ -1699,7 +1770,7 @@ PPT 已确定的视觉策略：{scene.get('visual_strategy', '左侧文字，右
         "原文指定的人物或动物身份优先；未指定身份且确实需要通用角色时才使用戴细圆框眼镜的圆头极简线人，暖黄边牧仅在语义合适时作为陪伴角色。"
         if style == OIL_VISUAL_STYLE else
         "主角必须严格来自原文；动物、人物身份与年龄不得被替换，同一角色在所有分镜中保持一致。"
-        if style == PAPER_METAPHOR_STYLE else
+        if style == PAPER_METAPHOR_STYLE or uses_builtin_reference else
         "同一主角固定为：中国青年男性，短黑发，朴素深色上衣，普通人形象；所有分镜中的年龄与外貌保持一致。"
     )
     reference_block = f"参考图说明：\n{reference_instruction}\n" if reference_instruction else ""
@@ -2529,6 +2600,8 @@ def model_stage(job_id: str, copy: str, style: str, reference: Path, scenes_per_
             elif style == OIL_VISUAL_STYLE and not board_images:
                 board_images, board_instruction = oil_visual_reference_context(board, infographic)
                 use_character_references = False
+            elif not board_images:
+                board_images, board_instruction = builtin_style_reference_context(style)
             board_prompt = build_board_prompt(board, style, board_instruction, use_character_references, infographic, aspect_ratio)
             board_specs.append((board_images, board_instruction, board_prompt))
         update_job(job_id, duration=duration, scenes=len(scenes), boards=len(boards), checkpoint="plan_done")
@@ -2822,6 +2895,8 @@ def regenerate_board_image(job_id: str, page: int, prompt: str) -> None:
             reference_images, _reference_instruction = paper_metaphor_reference_context(board)
         elif style == OIL_VISUAL_STYLE and not reference_images:
             reference_images, _reference_instruction = oil_visual_reference_context(board, is_infographic_job(job_id))
+        elif not reference_images:
+            reference_images, _reference_instruction = builtin_style_reference_context(style)
 
         stem = f"board-{page:02d}"
         image = job_dir / f"{stem}.png"
@@ -3152,14 +3227,14 @@ def test_config(payload: dict[str, Any]) -> dict[str, Any]:
 def generate_standalone_image(payload: dict[str, Any]) -> dict[str, Any]:
     prompt = str(payload.get("prompt") or "").strip()
     style_name = str(payload.get("style_name") or "").strip()
-    style_recipe = str(payload.get("style_recipe") or "").strip()
+    recipe = str(payload.get("style_recipe") or "").strip()
     aspect_ratio = normalize_aspect_ratio(payload.get("aspect_ratio"))
     quality = str(payload.get("quality") or "medium").strip()
     if not prompt:
         raise HTTPException(400, "请先输入画面描述")
     if len(prompt) > 4000:
         raise HTTPException(400, "提示词最多 4000 个字符")
-    if len(style_recipe) > 3000:
+    if len(recipe) > 3000:
         raise HTTPException(400, "画风配方过长")
     if quality not in {"medium", "high"}:
         raise HTTPException(400, "图片质量选项不受支持")
@@ -3167,15 +3242,21 @@ def generate_standalone_image(payload: dict[str, Any]) -> dict[str, Any]:
     config = load_config()
     if not image_provider_config(config).get("api_key"):
         raise HTTPException(400, "请先在 API 设置中填写图片 API Key 或 OpenLux API Key")
+    reference_images, reference_instruction = builtin_style_reference_context(style_name)
+    if reference_images and not recipe:
+        recipe = style_recipe(style_name)
     complete_prompt = (
-        f"{prompt}\n\nVisual style direction{f' ({style_name})' if style_name else ''}: {style_recipe}"
-        if style_recipe
+        f"{prompt}\n\nVisual style direction{f' ({style_name})' if style_name else ''}: {recipe}"
+        if recipe
         else prompt
     )
+    if reference_instruction:
+        complete_prompt = f"{reference_instruction}\n{complete_prompt}"
     with tempfile.TemporaryDirectory(prefix="image-lab-", dir=str(STATE_DIR)) as directory:
         target = Path(directory) / "generated.png"
         try:
-            generate_image(config, complete_prompt, target, aspect_ratio=aspect_ratio, quality=quality)
+            generate_image(config, complete_prompt, target, reference_images=reference_images,
+                           aspect_ratio=aspect_ratio, quality=quality)
         except ProviderHTTPError as exc:
             raise HTTPException(exc.status_code, str(exc)) from exc
         except Exception as exc:

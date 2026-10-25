@@ -7,8 +7,8 @@ from pathlib import Path
 import shutil
 import sys
 
-from . import media, workflow as w
-from .project import Project, WorkflowError, file_hash, initialize, now, read_json, require
+from . import media, styles, workflow as w
+from .project import Project, WorkflowError, file_hash, initialize, now, read_json, require, validate_config
 
 
 def parser():
@@ -40,7 +40,7 @@ def parser():
             sub.add_argument("--source", required=True)
             sub.add_argument("--dest", required=True)
             sub.add_argument("--replace", action="store_true")
-    for group, actions in {"storyboard": ("validate", "import", "request", "adapt"), "deck": ("request", "adapt"), "style": ("set", "list"),
+    for group, actions in {"storyboard": ("validate", "import", "request", "adapt"), "deck": ("request", "adapt"), "style": ("set", "list", "save"),
                            "image-mode": ("set",), "images": ("validate", "review", "digest", "prompts", "fit", "key-text"),
                            "audio": ("import", "synthesize", "verify", "align"), "timeline": ("build",),
                            "annotation": ("build", "preview", "import"), "preview": ("render", "compose")}.items():
@@ -48,7 +48,7 @@ def parser():
         actions_parser = sub.add_subparsers(dest="action", required=True)
         for action in actions:
             leaf = actions_parser.add_parser(action)
-            leaf.add_argument("--project", required=True)
+            leaf.add_argument("--project", required=(group, action) != ("style", "list"))
             if (group, action) in (("storyboard", "import"), ("storyboard", "adapt"), ("annotation", "import")):
                 leaf.add_argument("--file", required=True)
             if group == "deck" and action == "adapt":
@@ -60,6 +60,9 @@ def parser():
                 style_input = leaf.add_mutually_exclusive_group(required=True)
                 style_input.add_argument("--file")
                 style_input.add_argument("--preset")
+            if (group, action) == ("style", "save"):
+                leaf.add_argument("--name", help="预设名称；省略时使用当前自定义画风名称")
+                leaf.add_argument("--replace", action="store_true", help="更新同名自定义预设")
             if group == "image-mode":
                 leaf.add_argument("--choice", choices=("agent", "manual"), required=True)
             if group == "images" and action in ("review", "digest"):
@@ -115,7 +118,10 @@ def dispatch(p, a):
     if c == "resume":
         return w.resume(p)
     if c == "asset":
-        return asset_import(p, a.source, a.dest, a.replace)
+        result = asset_import(p, a.source, a.dest, a.replace)
+        if p.path(a.dest) == p.path("style/reference.png"):
+            p.data.setdefault("visual_references", {})["style_image"] = "style/reference.png"
+        return result
     if c == "storyboard":
         if action in ("request", "adapt"):
             from .bridge import plan
@@ -136,15 +142,39 @@ def dispatch(p, a):
         from .bridge import plan
         return plan(p, 0, read_json(Path(a.file)) if action == "adapt" else None, deck_only=True)
     if c == "style":
-        w.board_ready(p)
-        from .bridge import presets, project_context
         if action == "list":
-            return {"presets": presets()}
+            return {"presets": styles.presets(), "library": str(styles.LIBRARY_DIR.resolve())}
+        if action == "save":
+            return styles.save(p, a.name, a.replace)
+        w.board_ready(p)
+        from .bridge import project_context
+        custom = False
         if a.preset:
-            definition = next((item for item in presets() if item["id"] == a.preset), None)
-            require(definition, "未知原画风预设")
-            data = {"name": definition["name"], "preset": definition["id"], "recipe": definition["recipe"]}
-            asset_import(p, definition["image_path"], "style/preset-preview" + Path(definition["image_path"]).suffix, True)
+            definition = styles.select(a.preset)
+            styles.validate_images(definition)
+            custom = definition["source"] == "custom"
+            if custom:
+                data = definition["style"]
+                config = {**p.data["config"], "canvas_hex": definition["canvas_hex"]}
+                validate_config(config)
+                asset_import(p, definition["hand_path"], "style/drawing-hand.png", True)
+                p.data["config"] = config
+                reference = ""
+                if definition["image_path"]:
+                    source = Path(definition["image_path"])
+                    reference = f"style/preset-reference{source.suffix}"
+                    asset_import(p, source, reference, True)
+            else:
+                data = {"name": definition["name"], "preset": definition["id"], "recipe": definition["recipe"]}
+                preview = "style/preset-preview" + Path(definition["image_path"]).suffix
+                if definition.get("canvas_hex"):
+                    config = {**p.data["config"], "canvas_hex": definition["canvas_hex"]}
+                    validate_config(config)
+                    p.data["config"] = config
+                    data["canvas_hex"] = definition["canvas_hex"]
+                asset_import(p, definition["image_path"], preview, True)
+                reference = preview if definition.get("use_as_reference") else ""
+            p.data.setdefault("visual_references", {})["style_image"] = reference
         else:
             data = read_json(Path(a.file))
         p.save("style/style.json", data)
@@ -153,7 +183,7 @@ def dispatch(p, a):
         if not p.path("style/drawing-hand.png").exists():
             require(hand.exists(), "安装包未包含绘制手模板；请从 Skill assets 导入")
             shutil.copyfile(hand, p.path("style/drawing-hand.png"))
-        if p.data["config"].get("pen_text"):
+        if not custom and p.data["config"].get("pen_text"):
             with project_context(p) as module:
                 module.make_branded_hand(p.data["config"]["pen_text"], p.path("style/drawing-hand.png"))
         return {"digest": w.style_target(p), "approval_required": True}
@@ -312,6 +342,9 @@ def main(argv=None):
         elif a.command == "init":
             project = initialize(a.content, a.name, a.script, read_json(Path(a.config)) if a.config else None)
             result = {"project": str(project.root), "state": "script_ready"}
+            code = 0
+        elif a.command == "style" and a.action == "list":
+            result = dispatch(None, a)
             code = 0
         else:
             project = Project(a.project)

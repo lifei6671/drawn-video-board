@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 content/
+style-presets/
 .codegraph/
 *.egg-info/
 __pycache__/

@@ -146,6 +146,8 @@ cs_board_video = [
   "upstream/web/public/styles/retro-collage.webp",
   "upstream/web/public/styles/viral-pop.webp",
   "upstream/web/public/styles/warm-pencil.webp",
+  "upstream/web/public/styles/warm-chibi-story.png",
+  "upstream/web/public/styles/blue-gray-story.png",
   "upstream/web/public/window.svg",
   "upstream/web/tests/rendered-html.test.mjs",
   "upstream/web/tsconfig.json",

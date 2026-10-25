@@ -33,8 +33,13 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
    创建 `narration/storyboard.json`，运行 `storyboard validate`，展示整张分镜表。
    可用 storyboard request/adapt 获取原提示词并交回 Codex 候选，沿用原 make_plan 归一。
    停止并等待用户明确确认，再记录 `storyboard` 批准。
-2. **确定画风。** 分镜批准后用 style list/set 选择原 13 种画风或自定义，按 [styles.md](references/styles.md) 保存配置，
-   导入参考图和绘制手。展示画风，等待确认并记录 `style` 批准。
+2. **确定画风。** 用 style list 查看 15 种内置画风（原 13 种加暖色Q版叙事漫画风、灰蓝写实叙事漫画风）和用户保存的预设；分镜批准后用 style set 按名称或 id 选择，
+   或按 [styles.md](references/styles.md) 配置新的自定义画风。预设会自动复制参考图、绘制手和画布底色到项目。
+   暖色Q版叙事漫画风使用简化版预览图作为生图参考，配方采用封闭粗线轮廓、简化背景和大色块平涂，便于分区绘制。
+   灰蓝写实叙事漫画风使用用户确认的简化版主图作为预览和生图参考，保留低饱和淡彩、自然比例与清晰线条。
+   读取每镜 prompt-context.json 并把 references 对应图片实际传给生图工具。
+   展示画风，等待确认并记录 `style` 批准。用户要求以后复用时，用 style save 保存已确认的自定义画风；
+   后续项目可直接按名称选择，无需重复导入 JSON 和参考图。同名更新只在用户要求更新时使用 --replace。
 3. **选择生图方式。** 明确询问 Agent 生图或用户手动生图；运行 `image-mode set`，
    将用户选择记录为 `image_mode` 批准。未选择不得生成图片。
 4. **准备并验收图片。** 按 [image-assets.md](references/image-assets.md) 用 images prompts 生成原每镜中文提示词，
@@ -76,6 +81,8 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
 
 ## 资源边界
 
+用户明确保存的可复用画风及素材位于 Skill 根目录 `style-presets/`，默认不进入 Git；
+它是项目素材隔离的模板库例外，不保存项目角色或批准记录。选用时复制到当前项目，修改库不影响已有项目。
 全部任务输入、参考图、提示词、配音、标注、中间文件、日志、报告、最终视频都在
 `content/<项目>/` 中。使用模板前先复制到项目。`asset`/`audio import` 可读取外部源文件，
 但输出仅使用经过检查的项目内相对路径，拒绝绝对路径、`..` 和越界符号链接。

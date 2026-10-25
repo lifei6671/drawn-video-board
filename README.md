@@ -7,12 +7,15 @@
 先看 [功能与模块对应表](references/migration-map.md)；逐文件来源和迁入摘要见
 [upstream-manifest.json](references/upstream-manifest.json)。原许可证和原使用说明均保留。
 
-保留原生白板绘制、13 种画风、角色/风格参考、重点文字、标注编辑台、原 TTS、
+保留原生白板绘制、原 13 种画风、角色/风格参考、重点文字、标注编辑台、原 TTS、
 严格语音对齐、Remotion 动态知识 PPT、字幕烧录与 Pillow 回退、FFmpeg/PyAV 合并。
 原 Web、队列和平台启动器保留为可选原入口。Skill 调用原函数，不启动 Web 服务或恢复队列。
 
 新增适配仅围绕用户需求：`content/<项目>/` 隔离、分镜/画风/生图方式/新配音/完整预览
 的版本审核、本地 VoiceStudio、共享路径预览和按镜头增量恢复。
+自定义画风确认后可用 `style save` 保存到本地预设库；新项目通过 `style list` 查看、
+`style set --preset "画风名称"` 选用，配方与参考图自动复制。详见 [画风与预设库](references/styles.md)。
+现有 15 种内置画风。“暖色Q版叙事漫画风”使用简化版样图，配方适合分区手绘；“灰蓝写实叙事漫画风”保留自然比例、细线排线和侧光氛围。两种画风的预览图同时用作生图参考。
 
 ```powershell
 uv sync --locked

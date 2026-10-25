@@ -2,7 +2,8 @@
 
 统一入口 `python -m cs_board_video`，成功返回 JSON `{"ok":true,"result":...}`。
 退出码：0 成功；2 输入/资源错误；3 依赖或服务不可用；4 审核门槛未满足；5 执行失败。
-`--help` 是 argparse 的普通帮助文本。所有项目命令都需 `--project content/<slug>`。
+`--help` 是 argparse 的普通帮助文本。所有项目命令都需 `--project content/<slug>`；
+共享预设查询 `style list` 不需要项目。
 运行前 `uv sync --locked`；锁定依赖见根目录 uv.lock。FFmpeg/ffprobe 为外部依赖。
 
 ```powershell
@@ -49,7 +50,9 @@
 | --- | --- |
 | storyboard request --duration 秒 [--narrative-only] | 提取原规划请求到 narration/plan-request.json |
 | storyboard adapt --duration 秒 --file 候选JSON [--narrative-only] | 原 make_plan 归一 Codex 返回的数组 |
-| style list / style set --preset 原id | 全部 13 种原画风/预览/配方 |
+| style list | 全部 15 种内置画风及已保存的自定义预设，无需 --project |
+| style set --preset id或名称 | 选用内置或自定义预设；自定义素材复制到当前项目 |
+| style save [--name 名称] [--replace] | 保存已确认的自定义画风、参考图、绘制手和画布底色；不包含角色 |
 | images prompts | 原风格、角色、参考图和构图提示词 |
 | images fit / images key-text [--scene ...] | 原画幅适配 / 重点文字，保护原图 |
 | audio align [--tokens 实际词边界JSON] | 原 Whisper 对齐 / 导入原格式 |
