@@ -15,12 +15,14 @@ def normalize(text):
 
 
 def validate_storyboard(p):
+    from . import typography
     scenes = p.scenes()
     require(scenes and len(scenes) <= 999, "请先创建 narration/storyboard.json")
     fields = ("scene_id", "narration", "narrative_goal", "visual_description", "composition",
               "subjects", "drawing_order", "estimated_duration", "transition")
     for i, scene in enumerate(scenes, 1):
         require(isinstance(scene, dict) and all(scene.get(k) for k in fields), f"第 {i} 镜缺少必填字段")
+        typography.validate_scene(scene, p.data["config"])
         require(scene["scene_id"] == f"scene-{i:03}", "镜头必须连续编号 scene-001 起")
         require(isinstance(scene["narration"], str) and isinstance(scene["drawing_order"], list), "分镜字段类型错误")
         require(isinstance(scene["estimated_duration"], (float, int)) and math.isfinite(scene["estimated_duration"])
@@ -37,13 +39,17 @@ def validate_storyboard(p):
 
 
 def board_target(p, scene):
-    return digest({"scene": scene, "script": p.hash("narration/original.txt")})
+    from . import typography
+    return digest({"scene": scene, "script": p.hash("narration/original.txt"),
+                   **({"typography": typography.inputs(p)} if scene.get("visual_text") else {})})
 
 
 def board_ready(p):
     validate_storyboard(p)
     for scene in p.scenes():
         p.need_approval("storyboard:" + scene["scene_id"], board_target(p, scene))
+    from . import typography
+    typography.ready(p)
 
 
 def style_target(p):
@@ -121,7 +127,7 @@ def validate_images(p):
             row["upscale_required"] = info["width"] < config["width"] or info["height"] < config["height"]
             require(abs(info["width"] / info["height"] - config["width"] / config["height"]) < .01,
                     "图片比例与项目画幅不符")
-            require(info["contrast_std"] >= 3, "图片接近空白，需检查线条")
+            require(info["contrast_std"] >= 3 or scene.get("visual_mode") == "text_only", "图片接近空白，需检查线条")
             require(p.hash(f"scenes/{sid}/prompt.md"), "缺少实际使用的 prompt.md")
             metadata = p.load(f"scenes/{sid}/image-metadata.json", {})
             require(metadata.get("digest") == row["digest"] and
@@ -283,6 +289,11 @@ def annotation_inputs(p, sid):
 
 
 def annotation_validate(p, sid, annotation):
+    from .upstream.scripts.render_stream_whiteboard import validate_subject_contours
+    try:
+        validate_subject_contours(annotation)
+    except ValueError as error:
+        raise WorkflowError(str(error)) from error
     info = media.image_info(p.path(f"scenes/{sid}/image.png"))
     require(annotation.get("canvas") == {"width": info["width"], "height": info["height"]}, "标注画布必须等于原图尺寸")
     require(abs(annotation.get("sceneDurationMs", 0) - row_for(p, sid)["duration_ms"]) < .01, "标注时长与时间轴不符")
@@ -368,6 +379,7 @@ def drawing_config(p):
 
 
 def scene_inputs(p, sid):
+    from . import typography
     remotion = None
     if p.data["config"].get("render_engine") == "remotion":
         props = p.load("render/remotion-props.json", {})
@@ -376,7 +388,9 @@ def scene_inputs(p, sid):
         remotion["page"] = props.get("pages", [])[index]
     return digest({"scene": image_target(p, sid), "annotation": p.hash(f"scenes/{sid}/annotation.json"),
                    "timing": row_for(p, sid), "drawing": drawing_config(p),
-                   "engine": engine_hash(), "hand": p.hash("style/drawing-hand.png"), "remotion": remotion})
+                   "engine": engine_hash(), "hand": p.hash("style/drawing-hand.png"), "remotion": remotion,
+                   **({"typography": typography.inputs(p), "text_engine": file_hash(Path(__file__).with_name("text_render.py"))}
+                      if p.scene(sid).get("visual_text") else {})})
 
 
 def engine_hash():
@@ -529,7 +543,13 @@ def approval_target(p, stage, scene_id=None):
     require(scene_id is None or stage == "storyboard", "只有分镜支持逐镜批准；完整预览必须整段确认", 4)
     if stage == "storyboard":
         validate_storyboard(p)
+        from . import typography
+        typography.ready(p)
         return board_target(p, p.scene(scene_id)) if scene_id else digest({s["scene_id"]: board_target(p, s) for s in p.scenes()})
+    if stage == "typography":
+        from . import typography
+        validate_storyboard(p)
+        return typography.approval_target(p)
     if stage == "style":
         board_ready(p)
         validate_style(p)
@@ -572,6 +592,10 @@ def status(p):
     stage, next_action = "script_ready", "创建 narration/storyboard.json"
     try:
         validate_storyboard(p)
+        from . import typography
+        if typography.enabled(p):
+            stage, next_action = "typography_review", "分镜选择字体，生成 typography sample 并请用户确认"
+            typography.ready(p)
         stage, next_action = "storyboard_review", "展示分镜并等待用户确认"
         board_ready(p)
         stage, next_action = "style_review", "展示画风并等待用户确认"

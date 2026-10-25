@@ -39,6 +39,34 @@ import stream_render as sr  # noqa: E402
 DEFAULT_HAND = _SCRIPT_DIR.parent / "assets" / "drawing-hand.png"
 
 
+def validate_subject_contours(annotation: dict) -> None:
+    """Optional source-pixel polygons; all events use one geometry mode."""
+    elements = annotation.get("elements", [])
+    if not any("contours" in e for e in elements):
+        if any(e.get("reveal", {}).get("phase", "both") != "both" for e in elements):
+            raise ValueError("独立描线/填色阶段需要主体 contours")
+        return
+    width, height = annotation["canvas"]["width"], annotation["canvas"]["height"]
+    for e in elements:
+        if not isinstance(e.get("contours"), list) or not e["contours"]:
+            raise ValueError("主体模式的每个元素必须包含 contours")
+        holes = e.get("holes", [])
+        if not isinstance(holes, list):
+            raise ValueError("holes 必须是多边形数组")
+        for polygon in e["contours"] + holes:
+            if not isinstance(polygon, list) or len(polygon) < 3:
+                raise ValueError("主体轮廓至少需要三个点")
+            for point in polygon:
+                if (not isinstance(point, (list, tuple)) or len(point) != 2
+                        or any(type(v) is not int for v in point)
+                        or not (0 <= point[0] <= width and 0 <= point[1] <= height)):
+                    raise ValueError("主体轮廓必须使用画布内的整数坐标")
+            if cv2.contourArea(np.asarray(polygon, dtype=np.int32)) <= 0:
+                raise ValueError("主体轮廓面积必须大于零")
+        if e.get("reveal", {}).get("phase", "both") not in ("ink", "color", "both"):
+            raise ValueError("绘制 phase 必须是 ink、color 或 both")
+
+
 # ──────────────────────────────────────────────────────────────
 # 区域几何：把标注画布坐标缩放到输出尺寸
 # ──────────────────────────────────────────────────────────────
@@ -152,6 +180,8 @@ class RegionStreamRenderer:
                  hand_png: Path | None, bare_tip: bool, max_skeleton_strokes: int = 96) -> None:
         self.cfg = cfg
         self.ann = annotation
+        validate_subject_contours(annotation)
+        self.subject_mode = any("contours" in e for e in annotation["elements"])
         self.canvas_bgr = sr._hex_to_bgr(cfg.canvas_hex)
         self.max_skeleton_strokes = max(0, max_skeleton_strokes)
 
@@ -245,6 +275,18 @@ class RegionStreamRenderer:
     # ── 单区域的允许掩码：矩形 - 后续区域 - protectedRegions ──
     def _allowed_mask(self, element: dict, later_elements: list[dict]) -> np.ndarray:
         mask = np.zeros((self.out_h, self.out_w), dtype=bool)
+        if "contours" in element:
+            pixels = np.zeros(mask.shape, dtype=np.uint8)
+            for key, value in (("contours", 1), ("holes", 0)):
+                for polygon in element.get(key, []):
+                    points = np.rint(np.asarray(polygon) * [self.sx, self.sy]).astype(np.int32)
+                    cv2.fillPoly(pixels, [points], value)
+            mask = pixels > 0
+            # Explicit subject ownership is independent of later ink/color events.
+            for prot in element.get("reveal", {}).get("protectedRegions", []):
+                x0, y0, x1, y1 = _scaled_rect(prot, self.sx, self.sy, self.out_w, self.out_h)
+                mask[y0:y1, x0:x1] = False
+            return mask
         x0, y0, x1, y1 = _scaled_rect(element["region"], self.sx, self.sy, self.out_w, self.out_h)
         mask[y0:y1, x0:x1] = True
         for later in later_elements:
@@ -806,6 +848,28 @@ class RegionStreamRenderer:
                 sample_cell.append(idx)
         return samples, pen_lifts, sample_cell
 
+    def _wash_subject(self, writer, frames: int, allowed: np.ndarray) -> None:
+        """Opaque short serpentine strokes inside the silhouette, including gray fills.
+
+        Every changed pixel belongs to a stroke budget; no end-of-region patch or
+        final full-image replacement is needed. Existing ink is retained until its
+        original antialiased color is restored by the fill pass.
+        """
+        changed = allowed & np.any(self.drawn != self.color_img_float, axis=2)
+        ys, xs = np.where(changed)
+        band = max(2, self.cfg.brush_radius // 2)
+        lanes = ys // band
+        along = np.where(lanes % 2 == 0, xs, self.out_w - 1 - xs)
+        order = np.lexsort((ys, along, lanes))
+        ys, xs = ys[order], xs[order]
+        last = 0
+        for frame in range(frames):
+            end = round(len(xs) * (frame + 1) / frames)
+            self.drawn[ys[last:end], xs[last:end]] = self.color_img_float[ys[last:end], xs[last:end]]
+            writer.write(self._snapshot_with_tip(int(xs[end - 1]), int(ys[end - 1]))
+                         if end > last else self._snapshot())
+            last = end
+
     # ── 主渲染 ──
     def render_to(self, raw_path: Path, total_ms: int, *, writer=None, paths=None) -> Path:
         cfg = self.cfg
@@ -837,6 +901,24 @@ class RegionStreamRenderer:
                 fill_static(start_ms)
 
                 allowed = self._allowed_mask(element, elements[idx + 1:])
+                if self.subject_mode:
+                    phase = reveal.get("phase", "both")
+                    end_frame = round((start_ms + dur_ms) * cfg.fps / 1000)
+                    frames = max(0, end_frame - round(cur_ms * cfg.fps / 1000))
+                    ink_frames = frames if phase == "ink" else 0 if phase == "color" else frames // 2
+                    color_frames = frames - ink_frames
+                    if ink_frames:
+                        strokes = paths[idx] if paths is not None else self._region_skeleton_strokes(allowed)
+                        if strokes:
+                            self._lay_ink_strokes(writer, ink_frames, strokes, allowed)
+                        else:
+                            for _ in range(ink_frames):
+                                writer.write(self._snapshot())
+                    if color_frames:
+                        self._wash_subject(writer, color_frames, allowed)
+                    cur_ms += frames * ms_per_frame
+                    fill_static(start_ms + dur_ms)
+                    continue
                 # 严格分成两段：先画完整线稿，再独立进行颜色揭示。
                 ink_frames = max(1, round(dur_ms * 0.52 * cfg.fps / 1000))
                 color_frames = max(1, round(dur_ms * 0.28 * cfg.fps / 1000))
@@ -875,7 +957,8 @@ class RegionStreamRenderer:
             # Never extend a board past its allocated narration time. The old
             # extra 0.5s per board accumulated and let audio truncate the last
             # image before it appeared.
-            self.drawn[...] = self.color_img_float
+            if not self.subject_mode:
+                self.drawn[...] = self.color_img_float
             fill_static(total_ms)
         finally:
             writer.release()

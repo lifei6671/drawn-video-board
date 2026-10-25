@@ -1,6 +1,6 @@
 # 画风及原参考库
 
-运行 `style list`，返回 17 个内置预设（原 13 个及新增的暖色Q版叙事漫画风、灰蓝写实叙事漫画风、暖纸松弛线描风、复古黑白线描风）、本地自定义预设、配方和参考图路径。
+运行 `style list`，返回 20 个内置预设（原 13 个及新增的暖色Q版叙事漫画风、灰蓝写实叙事漫画风、暖纸松弛线描风、复古黑白线描风、灰调暖光漫画风、复古纸质人物拼贴风、纸框分层拼贴风）、本地自定义预设、配方和参考图路径。
 列出预设不需要项目或分镜批准；原 `style list --project ...` 调用仍可用。
 分镜批准后使用 `style set --project ... --preset <id或名称>`，或 `style set --project ... --file <json>` 导入自定义 `name` + `recipe`。
 旧的 lines/palette/proportions/shading/texture/composition/complexity 详细字段同样可用。
@@ -157,3 +157,47 @@
 模板的 `images` 路径对应上述导入目的地；库内资源不能直接作为项目外路径引用。
 角色添加或修改后重新审核画风，再生成提示词；提示词将画风图与角色图分别声明。
 猫也可搭配其他画风使用：选择有参考图的画风，或单独导入该画风的参考图，并保留角色条目。
+
+## 灰调暖光漫画风
+
+内置 id：`builtin-gray-warm-comic`，名称：`灰调暖光漫画风`。
+
+- 暖灰白底 `#F7F5EF`，黑色手绘轮廓、浅灰和中灰平涂，局部淡暖黄点缀。
+- 主要形状封闭，简化衣褶、手指和物件细节，头发保留宽阔留白，减少实黑面积。
+- 背景充分留白，光照简化为小块平涂；先画轮廓与表情，再画必要道具环境，最后少量填色。
+- 人物身份、服装、表情和场景由文案及独立角色参考决定，不固定使用男生、沙发、手机或台灯。
+
+画风样图位于 `cs_board_video/upstream/web/public/styles/gray-warm-comic.png`。
+用无人沙发与台灯展示线条、灰色块和暖光，避免男生身份混入画风参考。
+由内置 imagegen 于 2026-10-25 生成并保留原始字节；生成提示词见 [gray-warm-comic-generation.md](gray-warm-comic-generation.md)。
+已检查静态样图，尚未制作或验收该画风的动画预览。
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video style set --project content/demo --preset "灰调暖光漫画风"
+```
+
+选择画风只导入画风参考，画布底色设为 `#F7F5EF`，不会自动添加男生角色。
+
+### 独立角色参考：短发男生
+
+角色三视图位于 `cs_board_video/upstream/assets/character-references/gray-warm-boy/turnaround.png`，
+同目录 `character.json` 是现有 `visual_references.characters` 格式的可选角色模板。
+保留原图的微乱短黑发、圆脸、简洁五官和浅色翻领衬衫；灰长裤与休闲鞋是对原图未展示部分的简化补全。
+参考图包含正面、四分之三侧面和背面，分镜仅使用所需角度，表情随故事变化。
+
+仅在需要该男生的项目中导入：
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video asset --project content/demo --source cs_board_video/upstream/assets/character-references/gray-warm-boy/turnaround.png --dest characters/references/gray-warm-boy.png
+```
+
+随后将 `character.json` 中的对象追加到 `project.json.visual_references.characters`，保留 `style_image` 和其他角色。
+角色添加或修改后重新审核画风，再生成提示词；画风图与角色图会分别声明。
+可保留此角色并改选其他画风，不把角色模板绑定到本预设。
+
+## 复古纸质人物拼贴风与纸框分层拼贴风
+
+`builtin-vintage-paper-people`：粗纤维纸底、复古写实人物剪贴、低饱和半色调，适合人物关系、心理话题与行动句。
+`builtin-layered-paper-collage`：纸框、景物面板、跨框前景与浅投影形成层次。单张图可以复现这种视觉层次；月亮、人物、背景分别运动需独立透明图层，本次没有新增多层视差渲染器。
+
+两者参考图不绑定人物身份，也不内嵌文字。用 [typography.md](typography.md) 本地排字和气泡。颗粒纸纹作为底材，不把网点拆成大量笔画。素材与生成来源见 [paper-collage-generation.md](paper-collage-generation.md)。

@@ -29,7 +29,7 @@ def parser():
             selection.add_argument("--all", action="store_true")
             selection.add_argument("--scene")
         if name in ("approve", "review", "revise"):
-            sub.add_argument("--stage", required=True, choices=("storyboard", "style", "image_mode", "audio", "preview"))
+            sub.add_argument("--stage", required=True, choices=("storyboard", "typography", "style", "image_mode", "audio", "preview"))
             sub.add_argument("--scene")
         if name == "approve":
             sub.add_argument("--digest", required=True)
@@ -40,7 +40,7 @@ def parser():
             sub.add_argument("--source", required=True)
             sub.add_argument("--dest", required=True)
             sub.add_argument("--replace", action="store_true")
-    for group, actions in {"storyboard": ("validate", "import", "request", "adapt"), "deck": ("request", "adapt"), "style": ("set", "list", "save"),
+    for group, actions in {"materials": ("list", "export"), "typography": ("fonts", "font", "sample", "background"), "storyboard": ("validate", "import", "request", "adapt"), "deck": ("request", "adapt"), "style": ("set", "list", "save"),
                            "image-mode": ("set",), "images": ("validate", "review", "digest", "prompts", "fit", "key-text"),
                            "audio": ("import", "synthesize", "verify", "align"), "timeline": ("build",),
                            "annotation": ("build", "preview", "import"), "preview": ("render", "compose")}.items():
@@ -48,7 +48,29 @@ def parser():
         actions_parser = sub.add_subparsers(dest="action", required=True)
         for action in actions:
             leaf = actions_parser.add_parser(action)
-            leaf.add_argument("--project", required=(group, action) != ("style", "list"))
+            leaf.add_argument("--project", required=(group, action) not in (("style", "list"), ("typography", "fonts"), ("materials", "list")))
+            if group == "materials":
+                if action == "list":
+                    leaf.add_argument("--category", choices=("bubble","emphasis","paper","object"))
+                else:
+                    leaf.add_argument("--id", required=True)
+                    leaf.add_argument("--width", type=int, default=600)
+                    leaf.add_argument("--height", type=int, default=400)
+                    leaf.add_argument("--ink", default="#252521")
+                    leaf.add_argument("--paper", default="#F6F1E5")
+                    leaf.add_argument("--accent", default="#A8B88C")
+                    leaf.add_argument("--flip", action="store_true")
+                    leaf.add_argument("--replace", action="store_true")
+            if group == "typography":
+                if action in ("fonts", "font"):
+                    leaf.add_argument("--directory", help="字体目录，默认 references/fonts")
+                if action == "font":
+                    leaf.add_argument("--font", required=True)
+                    leaf.add_argument("--weight", type=float)
+                if action in ("sample", "background"):
+                    leaf.add_argument("--scene", required=True)
+                if action == "sample":
+                    leaf.add_argument("--background", help="用于真实排字样图的背景图片")
             if (group, action) in (("storyboard", "import"), ("storyboard", "adapt"), ("annotation", "import")):
                 leaf.add_argument("--file", required=True)
             if group == "deck" and action == "adapt":
@@ -113,6 +135,23 @@ def dispatch(p, a):
     c, action = a.command, getattr(a, "action", None)
     if getattr(a, "scene", None):
         p.scene(a.scene)
+    if c == "materials":
+        from . import materials
+        if action == "list":
+            return {"materials": [{**{k:v for k,v in item.items() if k != "shapes"},
+                                    "preview":str(materials.ROOT/(item["id"]+".png")),
+                                    "svg":str(materials.ROOT/(item["id"]+".svg"))}
+                                   for item in materials.catalog(a.category)]}
+        return materials.export(p,a.id,(a.width,a.height),{"ink":a.ink,"paper":a.paper,"accent":a.accent},a.flip,a.replace)
+    if c == "typography":
+        from . import typography as text
+        if action == "fonts":
+            return {"fonts": text.fonts(a.directory)}
+        if action == "font":
+            return text.choose_font(p, a.font, a.directory, a.weight)
+        if action == "sample":
+            return text.sample(p, a.scene, a.background)
+        return text.create_background(p, a.scene)
     if c == "status":
         return w.status(p)
     if c == "resume":
@@ -343,7 +382,7 @@ def main(argv=None):
             project = initialize(a.content, a.name, a.script, read_json(Path(a.config)) if a.config else None)
             result = {"project": str(project.root), "state": "script_ready"}
             code = 0
-        elif a.command == "style" and a.action == "list":
+        elif (a.command, getattr(a, "action", None)) in (("style", "list"), ("typography", "fonts"), ("materials", "list")):
             result = dispatch(None, a)
             code = 0
         else:

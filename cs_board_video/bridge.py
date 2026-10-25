@@ -154,9 +154,14 @@ def prompts(p):
             panels = scene.get("upstream_panels") or [native]
             prompt = module.build_board_prompt(panels, style, reference_instruction, bool(characters),
                        p.data["config"].get("render_engine") == "remotion", aspect)
+            if scene.get("visual_mode") == "text_only":
+                prompt = "本镜为关键文字页，无需 AI 生图。使用 typography background 生成底图，已确认的文字和字体由本地排版渲染。"
+            elif scene.get("visual_text"):
+                prompt += "\n本镜文字由本地字体准确排版，图片中不要生成文字或气泡。为以下归一化区域预留干净空间，避开人物脸部与关键物件：" + str([item["box"] for item in scene["visual_text"]])
             p.path(f"scenes/{sid}/prompt.md").write_text(prompt, encoding="utf-8")
             p.save(f"scenes/{sid}/prompt-context.json", {"upstream_function": "build_board_prompt",
-                   "style": style, "references": local_refs, "panels": panels})
+                   "style": style, "references": local_refs, "panels": panels,
+                   "visual_text": scene.get("visual_text", []), "visual_mode": scene.get("visual_mode", "illustration")})
             generated.append(sid)
     return {"prompts": generated, "producer": "upstream.webapp.server.build_board_prompt"}
 
@@ -180,6 +185,8 @@ def plan(p, duration, candidate=None, *, narrative_only=False, deck_only=False):
         style = style_name(p, module) if infographic else module.DEFAULT_STYLE
         if candidate is None:
             request = module.plan_request(copy, duration, style, infographic=infographic, phrase_timeline=phrases)
+            if not infographic:
+                request["prompt"] += "\n新增可选 visual_text 数组，只在关键镜头使用，普通镜头留空。内容可以是与口播相关的概念、关联句子、人物内心话，不必逐字复述；不得编造事实、数据或冒充真实引语。每项含 text、purpose（关联依据）、presentation（plain/speech-left/speech-right/thought/burst/caption/speech-soft/cloud-hand/shout/sticky-note/torn-note）、animation（characters逐字渐显，默认；fade整句及气泡淡入，不模拟笔画）、box（归一化x,y,w,h）、font_scale（高度比例）、start/duration（镜头时间比例，结束≤0.95）。特别关键的概念可用 visual_mode=text_only，其余 illustration。字体在分镜后通过 typography font 选择并生成样图请用户确认。key_text 仅为旧入口兼容，不能自动把每镜都变成文字镜头。"
             path = "render/deck-request.json" if deck_only else "narration/plan-request.json"
             p.save(path, request)
             return {"request": path, "producer": "upstream.plan_request", "infographic": infographic}
@@ -199,6 +206,14 @@ def plan(p, duration, candidate=None, *, narrative_only=False, deck_only=False):
                "subjects": item["elements"], "drawing_order": item["elements"],
                "estimated_duration": item["duration_ms"] / 1000, "transition": "cut", "upstream": item}
               for i, item in enumerate(native, 1)]
+    if not infographic and candidate is not None:
+        # Preserve explicitly authored optional text through upstream normalization.
+        require(isinstance(candidate, list) and len(candidate) == len(scenes), "文字分镜候选数量与原分镜不一致")
+        for scene, raw in zip(scenes, candidate):
+            if "visual_text" in raw:
+                scene["visual_text"] = raw["visual_text"]
+            if "visual_mode" in raw:
+                scene["visual_mode"] = raw["visual_mode"]
     p.save("narration/storyboard.json", {"scenes": scenes})
     from .workflow import validate_storyboard
     return validate_storyboard(p)

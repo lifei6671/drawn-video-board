@@ -50,7 +50,14 @@
 | --- | --- |
 | storyboard request --duration 秒 [--narrative-only] | 提取原规划请求到 narration/plan-request.json |
 | storyboard adapt --duration 秒 --file 候选JSON [--narrative-only] | 原 make_plan 归一 Codex 返回的数组 |
-| style list | 全部 17 种内置画风及已保存的自定义预设，无需 --project |
+| style list | 全部 20 种内置画风及已保存的自定义预设，无需 --project |
+| typography fonts | 列出 references/fonts 可用字体；可用 --directory 指定目录，无需 --project |
+| typography font --font ID | 选择并复制项目字体；可变字重用 --weight |
+| typography sample --scene ID | 用真实字体生成待确认样图；--background 可提供同比例背景 |
+| review / approve --stage typography | 读取样图摘要；用户确认后记录字体和排字批准 |
+| typography background --scene ID | 为 text_only 镜头生成底图，需先确认字体样图 |
+| materials list [--category bubble/emphasis/paper/object] | 列出25项独立素材及预览路径，无需项目 |
+| materials export --id ID --project PATH | 导出项目内透明PNG、SVG和元数据；支持尺寸、ink/paper/accent颜色、--flip及--replace |
 | style set --preset id或名称 | 选用内置或自定义预设；自定义素材复制到当前项目 |
 | style save [--name 名称] [--replace] | 保存已确认的自定义画风、参考图、绘制手和画布底色；不包含角色 |
 | images prompts | 原风格、角色、参考图和构图提示词 |

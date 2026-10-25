@@ -92,7 +92,23 @@ WARM_PAPER_LINE_STYLE = "暖纸松弛线描风"
 WARM_PAPER_LINE_STYLE_ID = "builtin-warm-paper-line"
 RETRO_MONO_LINE_STYLE = "复古黑白线描风"
 RETRO_MONO_LINE_STYLE_ID = "builtin-retro-mono-line"
+GRAY_WARM_COMIC_STYLE = "灰调暖光漫画风"
+GRAY_WARM_COMIC_STYLE_ID = "builtin-gray-warm-comic"
 STYLE_PRESETS = {
+    GRAY_WARM_COMIC_STYLE: (
+        "适合先画轮廓和表情、再画道具环境、最后少量填色的手绘动画原画。暖灰白纯净背景#F7F5EF，"
+        "黑色手绘轮廓，浅灰和中灰平涂，局部淡暖黄点缀光源或叙事重点，避免满屏灰底。"
+        "外轮廓中等偏粗、内部线更细，略有自然笔压变化，线条连续清晰、主要形状封闭；"
+        "不用密集排线、网点、碎线、纸张颗粒、渐变、模糊光晕和复杂光照。"
+        "人物采用概括的漫画比例，五官简洁、动作明确，情绪随文案变化；有独立角色参考时保留其身份和比例。"
+        "头发分成少量大束并留出宽阔高光空隙，减少连续实黑面积；手指、纽扣、衣褶和鞋子细节从简。"
+        "每个物体一种浅色底色加至多一块简洁阴影，灯光用小块淡黄色平涂表达，不强制每镜出现灯。"
+        "只保留叙事必要人物、道具与少量环境轮廓，主体完整、分区边界清楚，背景充分留白并预留字幕安全区。"
+        "本预设只定义画风，人物身份、性别、服装、动作和场景由文案及独立角色参考决定；"
+        "不得照搬样图中的沙发、靠垫、台灯、手机或室内构图，也不自动加入任何固定男生。"
+        "输出单幅完整原画，不输出角色三视图、步骤图或拼图；禁止字幕、文字、字母、数字、对白框、"
+        "漫画边框、Logo、水印、画外绘制手、摄影写实和3D效果。"
+    ),
     RETRO_MONO_LINE_STYLE: (
         "适合先描轮廓与五官、再快速填充少量黑色块的手绘动画原画。暖米白纯净背景，"
         "仅使用黑色墨线、黑色平涂与纸色留白，不使用彩色点缀、灰阶阴影或渐变。"
@@ -208,6 +224,18 @@ STYLE_PRESETS = {
         "橙色表示行动、警告或成本，紫色表示过程，绿色表示成功或完成。关系必须用具体物件、路径、状态变化和重复材料证明，"
         "不能靠装饰图标凑数。原文需要通用角色时才使用戴细圆框眼镜的圆头极简线人，胖胖的暖黄边牧只作合适的陪伴角色；"
         "抽象机制页优先画物件和状态，不强塞人物。禁止 3D、摄影写实、光滑渐变、通用卡片网格、仪表盘、杂乱装饰、Logo 和水印。"
+    ),
+    "复古纸质人物拼贴风": (
+        "暖白粗纤维纸底，复古印刷人物剪贴，克制的半色调网点、旧杂志颗粒与自然裁切边；"
+        "人物采用写实比例，低饱和砖红、墨绿、赭黄，主视觉不超过两组并保留大片排字空间。"
+        "纸纹是静态底材，人物按完整外轮廓分组显现，不能把每个网点当成独立笔画。"
+        "只参考材质、色调和构图语言，不固定样图人物身份。图片不生成文字或气泡，文字由本地字体单独排版；禁止水印和平台界面。"
+    ),
+    "纸框分层拼贴风": (
+        "暖白纸框承托低饱和深色景物面板，前景人物剪贴与远景分离，圆形天体或物件跨越纸框形成遮挡层次；"
+        "保留纸边、浅投影、旧印刷颗粒，最多前中后三个视觉层，克制留白，不堆装饰。"
+        "主体按轮廓分组绘制，纸纹作为底材。参考图只约束画风，不绑定人物身份。"
+        "图片不生成文字、气泡、水印或平台界面；文字由本地字体添加。整体样图只提供静态层次，需要独立运动时须另备透明分层素材。"
     ),
     "3D黏土趣味风": (
         "可爱的三维黏土动画场景，圆润玩具化比例，可见细微手作指纹，"
@@ -333,7 +361,23 @@ BUILTIN_STYLE_DEFINITIONS = [
         "use_as_reference": True,
         "canvas_hex": "#FAF3E3",
     },
+    {
+        "id": GRAY_WARM_COMIC_STYLE_ID,
+        "name": GRAY_WARM_COMIC_STYLE,
+        "description": "黑色线描、灰色平涂、局部暖黄与大面积留白",
+        "image_url": "/styles/gray-warm-comic.png",
+        "use_as_reference": True,
+        "canvas_hex": "#F7F5EF",
+    },
 ]
+BUILTIN_STYLE_DEFINITIONS.extend([
+    {"id": "builtin-vintage-paper-people", "name": "复古纸质人物拼贴风",
+     "description": "纸张底纹、复古人物剪贴与半色调印刷质感",
+     "image_url": "/styles/vintage-paper-people.png", "use_as_reference": True, "canvas_hex": "#F6F1E5"},
+    {"id": "builtin-layered-paper-collage", "name": "纸框分层拼贴风",
+     "description": "纸框、景物面板与跨框前景形成空间层次",
+     "image_url": "/styles/layered-paper-collage.png", "use_as_reference": True, "canvas_hex": "#F7F3E8"},
+])
 BUILTIN_STYLE_BY_ID = {item["id"]: item for item in BUILTIN_STYLE_DEFINITIONS}
 
 

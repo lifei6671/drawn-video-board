@@ -1,5 +1,9 @@
 # 分镜协议
 
+关键镜头可增加独立的 `visual_text`，普通镜头不加字。支持直接排字、对话/思考气泡和纯文字概念页。
+文字可提炼口播含义，也可提供相关的行动句，须记录关联理由；不可编造事实或冒充真实引语。
+字段、字体选择及样图确认见 [typography.md](typography.md)。存在文字时，字体样图批准先于分镜批准。
+
 用户原文原样保存 `narration/original.txt`。Agent 创作分镜，不用字符切分器替代叙事设计。
 将下列 JSON 保存到 `narration/storyboard.json` 或用 `storyboard import --file` 导入：
 

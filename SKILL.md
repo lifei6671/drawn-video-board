@@ -32,8 +32,14 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
 1. **拆分分镜。** 保留原文，完整覆盖；按 [storyboard.md](references/storyboard.md)
    创建 `narration/storyboard.json`，运行 `storyboard validate`，展示整张分镜表。
    可用 storyboard request/adapt 获取原提示词并交回 Codex 候选，沿用原 make_plan 归一。
-   停止并等待用户明确确认，再记录 `storyboard` 批准。
-2. **确定画风。** 用 style list 查看 17 种内置画风（原 13 种加暖色Q版叙事漫画风、灰蓝写实叙事漫画风、暖纸松弛线描风、复古黑白线描风）和用户保存的预设；分镜批准后用 style set 按名称或 id 选择，
+   仅在关键镜头设计可选 `visual_text`（关键词、关联句、内心话）；普通镜头留空，不逐镜堆字。
+   文字与口播不必相同，但须说明关联依据。特别关键的概念可用 `visual_mode=text_only`。
+   需要气泡、圈线、纸张或分层物件时，先查看 [materials.md](references/materials.md) 和 materials list；
+   选用已有素材，按朝向、适用风格及安全排字区安排位置，人物角色仍独立选择。
+   有文字时先按 [typography.md](references/typography.md) 从 `references/fonts` 选字体，
+   用 typography font/sample 绘制实际排字样图，展示给用户确认并记录 `typography` 批准。
+   字体与样图确认后，停止并等待用户明确确认分镜，再记录 `storyboard` 批准。
+2. **确定画风。** 用 style list 查看 20 种内置画风（原 13 种加暖色Q版叙事漫画风、灰蓝写实叙事漫画风、暖纸松弛线描风、复古黑白线描风、灰调暖光漫画风、复古纸质人物拼贴风、纸框分层拼贴风）和用户保存的预设；分镜批准后用 style set 按名称或 id 选择，
    或按 [styles.md](references/styles.md) 配置新的自定义画风。预设会自动复制参考图、绘制手和画布底色到项目。
    暖色Q版叙事漫画风使用简化版预览图作为生图参考，配方采用封闭粗线轮廓、简化背景和大色块平涂，便于分区绘制。
    灰蓝写实叙事漫画风使用用户确认的简化版主图作为预览和生图参考，保留低饱和淡彩、自然比例与清晰线条。

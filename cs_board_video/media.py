@@ -108,7 +108,7 @@ def render_scene(project, scene_id, annotation, inputs, preview_size=None):
         paths = []
         for index, element in enumerate(elements):
             allowed = renderer._allowed_mask(element, elements[index + 1:])
-            paths.append(renderer._region_skeleton_strokes(allowed) if renderer.cfg.ink_path_mode == "skeleton"
+            paths.append(renderer._region_skeleton_strokes(allowed) if renderer.subject_mode or renderer.cfg.ink_path_mode == "skeleton"
                          else renderer._region_grid_path(allowed))
         cached = {"inputs": inputs, "canonical_size": [renderer.out_w, renderer.out_h], "paths": paths}
         project.save(cache_path, cached)
@@ -121,6 +121,15 @@ def render_scene(project, scene_id, annotation, inputs, preview_size=None):
     require(abs(size[0] / size[1] - renderer.out_w / renderer.out_h) < .01,
             "预览画幅比例必须与正式画幅一致")
     writer = PreviewWriter(raw, renderer.cfg.fps, size)
+    text_overlay = None
+    if project.scene(scene_id).get("visual_text"):
+        from . import typography
+        from .text_render import TextOverlay
+        typography.ready(project)
+        text_overlay = TextOverlay(typography.layout(project, project.scene(scene_id),
+                                   (renderer.out_w, renderer.out_h)),
+                                   annotation["sceneDurationMs"], renderer.cfg.fps)
+        writer = text_overlay.wrap(writer)
     renderer.render_to(raw, annotation["sceneDurationMs"], writer=writer, paths=cached["paths"])
     pending = output.with_name(output.stem + ".pending.mp4")
     run(["ffmpeg", "-y", "-v", "error", "-i", raw, "-an", "-c:v", "libx264",
@@ -131,7 +140,7 @@ def render_scene(project, scene_id, annotation, inputs, preview_size=None):
     require(check["passed"], f"镜头技术检查失败: {check}", 5)
     pending.replace(output)
     raw.unlink(missing_ok=True)
-    quality = drawing_checks(output, renderer, annotation)
+    quality = drawing_checks(output, renderer, annotation, text_overlay)
     project.save(f"reports/{scene_id}-{'preview' if preview_size else 'final'}.json", quality)
     contact = project.path(f"{prefix}/{'preview' if preview_size else 'final'}-contact.png")
     contact_sheet(output, contact)
@@ -190,7 +199,7 @@ def render_remotion_scene(project, scene_id, inputs, preview_size):
     return stage + ".mp4", report
 
 
-def drawing_checks(path, renderer, annotation):
+def drawing_checks(path, renderer, annotation, text_overlay=None):
     """Pixel checks with hand overlay disabled for protected-region semantics."""
     capture = cv2.VideoCapture(str(path))
     fps = capture.get(cv2.CAP_PROP_FPS)
@@ -199,6 +208,8 @@ def drawing_checks(path, renderer, annotation):
     static_run = longest = 0
     leakage = []
     elements = sorted(annotation["elements"], key=lambda e: e["reveal"]["startMs"])
+    subject_masks = ([renderer._allowed_mask(e, []) for e in elements]
+                     if renderer.subject_mode else None)
     index = 0
     last = None
     # Every decoded frame is checked for validity and long static runs.
@@ -217,9 +228,19 @@ def drawing_checks(path, renderer, annotation):
             at_ms = index * 1000 / fps
             # Image-region pixels may legitimately be occupied by the moving hand.
             # Report that case as requiring human review, never as a mask PASS.
-            if renderer.tip is None:
-                for e in elements:
+            if renderer.tip is None and text_overlay is None:
+                for ei, e in enumerate(elements):
                     if at_ms + 1000 / fps < e["reveal"]["startMs"]:
+                        if subject_masks is not None:
+                            future = subject_masks[ei].copy()
+                            for prior, mask in zip(elements, subject_masks):
+                                if prior["reveal"]["startMs"] <= at_ms:
+                                    future &= ~mask
+                            future = cv2.resize(future.astype(np.uint8), (frame.shape[1], frame.shape[0]),
+                                                interpolation=cv2.INTER_NEAREST) > 0
+                            if future.any() and np.abs(frame[future].astype(float) - renderer.canvas_bgr).mean() > 10:
+                                leakage.append({"frame": index, "element": e["id"]})
+                            continue
                         r = e["region"]
                         sx = frame.shape[1] / annotation["canvas"]["width"]
                         sy = frame.shape[0] / annotation["canvas"]["height"]
@@ -233,12 +254,16 @@ def drawing_checks(path, renderer, annotation):
     finally:
         capture.release()
     require(last is not None, "无法解码绘制输出", 5)
-    expected = cv2.resize(renderer.color_img, (last.shape[1], last.shape[0]))
+    reference = renderer.color_img.copy()
+    if text_overlay is not None:
+        text_overlay.paint(reference, annotation["sceneDurationMs"])
+    expected = cv2.resize(reference, (last.shape[1], last.shape[0]))
     error = float(cv2.absdiff(last, expected).mean())
     return {"decoded_frames": index, "expected_frames": count, "final_frame_mae": error,
             "final_frame_complete": error < 18, "longest_static_seconds": longest / fps,
             "static_warning": longest / fps > 3, "mask_leakage": leakage[:20],
-            "mask_check": "REQUIRES_VISUAL_REVIEW" if renderer.tip else ("FAIL" if leakage else "PASS"),
+            "mask_check": "REQUIRES_VISUAL_REVIEW" if renderer.tip or text_overlay else ("FAIL" if leakage else "PASS"),
+            "text_overlay": text_overlay is not None,
             "order_check": "PASS", "visual_acceptance": "NOT_RUN",
             "passed": index == count and error < 18 and not leakage}
 
