@@ -33,7 +33,7 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
    创建 `narration/storyboard.json`，运行 `storyboard validate`，展示整张分镜表。
    可用 storyboard request/adapt 获取原提示词并交回 Codex 候选，沿用原 make_plan 归一。
    停止并等待用户明确确认，再记录 `storyboard` 批准。
-2. **确定画风。** 用 style list 查看 16 种内置画风（原 13 种加暖色Q版叙事漫画风、灰蓝写实叙事漫画风、复古黑白线描风）和用户保存的预设；分镜批准后用 style set 按名称或 id 选择，
+2. **确定画风。** 用 style list 查看 17 种内置画风（原 13 种加暖色Q版叙事漫画风、灰蓝写实叙事漫画风、暖纸松弛线描风、复古黑白线描风）和用户保存的预设；分镜批准后用 style set 按名称或 id 选择，
    或按 [styles.md](references/styles.md) 配置新的自定义画风。预设会自动复制参考图、绘制手和画布底色到项目。
    暖色Q版叙事漫画风使用简化版预览图作为生图参考，配方采用封闭粗线轮廓、简化背景和大色块平涂，便于分区绘制。
    灰蓝写实叙事漫画风使用用户确认的简化版主图作为预览和生图参考，保留低饱和淡彩、自然比例与清晰线条。

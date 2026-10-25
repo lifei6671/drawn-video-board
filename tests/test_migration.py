@@ -82,7 +82,7 @@ class MigrationTests(unittest.TestCase):
 
     def test_original_presets_references_prompts_and_planning(self):
         styles = bridge.presets()
-        self.assertEqual(len(styles), 16)
+        self.assertEqual(len(styles), 17)
         self.assertTrue(all(Path(s["image_path"]).is_file() and s["recipe"] for s in styles))
         p = prepare_images(fixture(self.temp.name))
         module = bridge.server()

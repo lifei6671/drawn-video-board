@@ -88,6 +88,8 @@ WARM_CHIBI_STYLE = "暖色Q版叙事漫画风"
 WARM_CHIBI_STYLE_ID = "builtin-warm-chibi-story"
 BLUE_GRAY_STORY_STYLE = "灰蓝写实叙事漫画风"
 BLUE_GRAY_STORY_STYLE_ID = "builtin-blue-gray-story"
+WARM_PAPER_LINE_STYLE = "暖纸松弛线描风"
+WARM_PAPER_LINE_STYLE_ID = "builtin-warm-paper-line"
 RETRO_MONO_LINE_STYLE = "复古黑白线描风"
 RETRO_MONO_LINE_STYLE_ID = "builtin-retro-mono-line"
 STYLE_PRESETS = {
@@ -106,6 +108,21 @@ STYLE_PRESETS = {
         "有独立角色参考时，优先保留其身份特征、比例与必要黑色块，画风配方不得改变角色物种。"
         "输出单幅完整原画，不输出角色三视图、步骤图、对比拼图或画外绘制手；"
         "禁止文字、字母、数字、标签、对白框、漫画边框、Logo、水印、摄影写实和3D效果。"
+    ),
+    WARM_PAPER_LINE_STYLE: (
+        "适合先描轮廓、再分区上色的彩色手绘动画原画。暖米白纯净纸色背景，橄榄绿、奶油白和深暖褐为主，"
+        "少量浅桃肤色、腮红与赭黄点缀；低饱和、哑光、温柔松弛，纸感来自底色，不添加纸张颗粒。"
+        "使用深褐近黑的自然线描，外轮廓中等粗细、内部结构线更细，轻微笔压变化和柔和不规则弧线；"
+        "轮廓连续清楚，主要形状形成封闭色块，避免反复描摹、断裂毛边、密集排线和过粗马克笔描边。"
+        "人物约3头身，圆脸、简洁点状眼睛、小鼻口和克制腮红，通过姿态和手势表达情绪；"
+        "头发归纳为少量大束，衣褶只保留必要结构线，手指与关节简化但动作明确，保留手绘亲切感。"
+        "平涂色块为主，每个物体一种底色加最多一层简洁阴影，地面只用浅米色简洁投影；"
+        "避免渐变、擦笔纹理、密集碎发、水彩洇边和复杂光照，便于按人物、道具与环境进行语义分区绘制。"
+        "只保留叙事必要的主体和道具，主体大小清晰可辨，边界分明，背景简化并充分留白，预留字幕安全区。"
+        "只迁移画风；人物身份、性别、年龄、服装、情绪、动作和场景服从本镜文案，"
+        "不固定复用参考图中的丸子头女孩、托腮坐姿或三花猫，不因画风温柔而改变故事情绪。"
+        "输出完整彩色原画，不画步骤图、对比拼图、画外绘制手或画笔；"
+        "禁止文字、字母、数字、书法标题、对白框、思考气泡、漫画边框、Logo和水印，避免摄影写实、3D塑料感和霓虹配色。"
     ),
     BLUE_GRAY_STORY_STYLE: (
         "低饱和灰蓝、灰绿与暖米白为主色，浅褐木色和自然肤色形成克制的冷暖对照，少量暗青色点缀。"
@@ -299,6 +316,14 @@ BUILTIN_STYLE_DEFINITIONS = [
         "image_url": "/styles/blue-gray-story.png",
         "use_as_reference": True,
         "canvas_hex": "#A7B9B9",
+    },
+    {
+        "id": WARM_PAPER_LINE_STYLE_ID,
+        "name": WARM_PAPER_LINE_STYLE,
+        "description": "暖纸底色、橄榄绿、松弛线描与简洁平涂",
+        "image_url": "/styles/warm-paper-line.png",
+        "use_as_reference": True,
+        "canvas_hex": "#FFFCF0",
     },
     {
         "id": RETRO_MONO_LINE_STYLE_ID,

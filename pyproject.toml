@@ -148,6 +148,7 @@ cs_board_video = [
   "upstream/web/public/styles/warm-pencil.webp",
   "upstream/web/public/styles/warm-chibi-story.png",
   "upstream/web/public/styles/blue-gray-story.png",
+  "upstream/web/public/styles/warm-paper-line.png",
   "upstream/web/public/styles/retro-mono-line.png",
   "upstream/assets/character-references/retro-cat/turnaround.png",
   "upstream/assets/character-references/retro-cat/character.json",

@@ -53,7 +53,7 @@ class StyleLibraryTests(unittest.TestCase):
 
     def test_list_without_project_before_storyboard_is_read_only(self):
         result = self.call("style", "list")
-        self.assertEqual(len(result["presets"]), 16)
+        self.assertEqual(len(result["presets"]), 17)
         self.assertTrue(all(item["source"] == "builtin" for item in result["presets"]))
         self.assertFalse(self.library.exists())
         p = fixture(self.base, name="new-project")
@@ -71,7 +71,7 @@ class StyleLibraryTests(unittest.TestCase):
         saved = self.call("style", "save", "--project", str(source.root), "--name", "暖纸漫画")
         self.assertEqual(Project(source.root).approvals, source_approval)
         listing = self.call("style", "list")["presets"]
-        self.assertEqual(len(listing), 17)
+        self.assertEqual(len(listing), 18)
         self.assertEqual(listing[-1]["id"], saved["id"])
         self.assertEqual(file_hash(Path(listing[-1]["image_path"])), ref_hash)
         # Remove only this test's source project to prove the library owns its assets.
