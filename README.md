@@ -43,4 +43,4 @@ $env:CS_BOARD_REMOTION_TEST='1' # 已安装上述原 Node 依赖/浏览器时
 
 关键镜头支持独立文字层：从 `references/fonts` 选字体，先生成样图让用户确认，再进入分镜批准。支持直接文字、十种气泡和纯文字页，普通镜头无需加字。详见 [文字与气泡](references/typography.md)。新增“复古纸质人物拼贴风”和“纸框分层拼贴风”；后者提供静态层次，独立视差运动另需分层素材。
 
-新增 [25项可复用素材库](references/materials.md)：包含10种气泡、5种强调标记、5种纸张边框、5种独立分层物件。`materials list` 查看预览，`materials export` 按颜色、尺寸和朝向导出透明PNG及SVG到项目；不自动绑定人物角色。
+内置 [51项可复用素材库](references/materials.md)：包含10种气泡、5种强调标记、5种纸张边框、5种基础分层物件，以及纸框分层拼贴风的6种日常用品、6种中外通用人物、10种动物和4种场景。`materials list` 查看预览，`materials export` 按尺寸和朝向导出透明PNG到项目；矢量素材另支持改色和SVG，不自动绑定人物角色。

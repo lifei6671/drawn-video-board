@@ -61,6 +61,6 @@ python -m cs_board_video review --project content/demo --stage typography
 ## 气泡资源与绘制质量
 
 `cs_board_video/assets/bubbles/` 内有十个透明 SVG 与同源 `templates.json`，可复用或修改颜色和尺寸。
-这些气泡和其他强调、纸张、分层素材统一收录在 [materials.md](materials.md) 的25项素材库中。
+这些气泡和其他强调、纸张、分层素材统一收录在 [materials.md](materials.md) 的51项素材库中。
 JSON 的轮廓及安全排字区供本地渲染，SVG 供其他工具复用。底图提示词会预留排字区域并禁止生成文字和气泡。
 文字和气泡一起参与最终帧比对、预览缓存失效；叠字场景的底图区域泄漏检查明确标为需要视觉复核，不能以像素检查替代遮挡验收。

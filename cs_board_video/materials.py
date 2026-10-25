@@ -14,6 +14,7 @@ DEFAULT_COLORS = {"ink": "#252521", "paper": "#F6F1E5", "accent": "#A8B88C"}
 
 def catalog(category=None):
     items = json.loads((ROOT / "catalog.json").read_text(encoding="utf-8"))["items"]
+    items += json.loads((ROOT / "collage-catalog.json").read_text(encoding="utf-8"))["items"]
     if category is not None:
         require(category in {item["category"] for item in items}, "未知素材分类")
         items = [item for item in items if item["category"] == category]
@@ -48,6 +49,13 @@ def options(size, colors):
 
 def render(item, size=(600,400), colors=None, flip=False):
     palette = options(size, colors)
+    if item.get("raster"):
+        require(palette == DEFAULT_COLORS, "纸质剪贴位图保留原色，不支持 ink/paper/accent 改色")
+        with Image.open(ROOT / item["raster"]) as source:
+            cutout = ImageOps.contain(source.convert("RGBA"), tuple(size), Image.Resampling.LANCZOS)
+        image = Image.new("RGBA", tuple(size))
+        image.paste(cutout, ((size[0]-cutout.width)//2, (size[1]-cutout.height)//2))
+        return ImageOps.mirror(image) if flip else image
     scale = 3 if max(size) <= 1200 else 2
     high = (size[0]*scale, size[1]*scale)
     image = Image.new("RGBA", high)
@@ -78,6 +86,7 @@ def render(item, size=(600,400), colors=None, flip=False):
 
 
 def svg(item, size=(600,400), colors=None, flip=False):
+    require(not item.get("raster"), "纸质剪贴素材是位图，不提供矢量 SVG")
     palette = options(size, colors)
     root = Element("svg", {"xmlns":"http://www.w3.org/2000/svg", "viewBox":"0 0 600 400",
                            "width":str(size[0]), "height":str(size[1]), "preserveAspectRatio":"none"})
@@ -104,19 +113,23 @@ def svg(item, size=(600,400), colors=None, flip=False):
 def export(p, asset_id, size=(600,400), colors=None, flip=False, replace=False):
     item = select(asset_id)
     palette = options(size, colors)
-    paths = {suffix:p.path(f"materials/{asset_id}.{suffix}") for suffix in ("png","svg","json")}
+    suffixes = ("png", "json") if item.get("raster") else ("png", "svg", "json")
+    paths = {suffix:p.path(f"materials/{asset_id}.{suffix}") for suffix in suffixes}
     require(replace or not any(path.exists() for path in paths.values()), "项目素材已存在；替换需 --replace")
     png = render(item, size, palette, flip)
-    vector = svg(item, size, palette, flip)
+    vector = None if item.get("raster") else svg(item, size, palette, flip)
     paths["png"].parent.mkdir(parents=True,exist_ok=True)
     png.save(paths["png"])
-    paths["svg"].write_text(vector,encoding="utf-8")
+    if vector is not None:
+        paths["svg"].write_text(vector,encoding="utf-8")
     metadata = {k:v for k,v in item.items() if k not in ("shapes","bubble")}
     if flip:
         metadata["direction"] = {"left":"right","right":"left"}.get(item["direction"],item["direction"])
         if metadata.get("text_box"):
             x,y,w,h=metadata["text_box"];metadata["text_box"]=[1-x-w,y,w,h]
-    metadata.update(size=list(size),colors=palette,flip=flip,png_sha256=file_hash(paths["png"]),
-                    svg_sha256=file_hash(paths["svg"]),source="builtin-materials",character_identity=None)
+    metadata.update(size=list(size),colors=None if item.get("raster") else palette,flip=flip,
+                    png_sha256=file_hash(paths["png"]),source="builtin-materials",character_identity=None)
+    if vector is not None:
+        metadata["svg_sha256"] = file_hash(paths["svg"])
     p.save(f"materials/{asset_id}.json",metadata)
     return {"files":{k:str(v) for k,v in paths.items()},"material":metadata}

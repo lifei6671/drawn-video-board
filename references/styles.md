@@ -200,4 +200,6 @@
 `builtin-vintage-paper-people`：粗纤维纸底、复古写实人物剪贴、低饱和半色调，适合人物关系、心理话题与行动句。
 `builtin-layered-paper-collage`：纸框、景物面板、跨框前景与浅投影形成层次。单张图可以复现这种视觉层次；月亮、人物、背景分别运动需独立透明图层，本次没有新增多层视差渲染器。
 
+该画风可从 [素材库](materials.md) 选择 26 项独立透明剪贴 PNG，覆盖 6 种日常用品、6 种中外通用人物、10 种动物及 4 种纸框场景背景；用 `materials list --category person` 查看人物，`materials export` 导出项目副本。选择画风不会自动套用具体人物或道具。
+
 两者参考图不绑定人物身份，也不内嵌文字。用 [typography.md](typography.md) 本地排字和气泡。颗粒纸纹作为底材，不把网点拆成大量笔画。素材与生成来源见 [paper-collage-generation.md](paper-collage-generation.md)。

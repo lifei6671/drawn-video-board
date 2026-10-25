@@ -1,0 +1,531 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "collage-kettle",
+      "name": "搪瓷水壶",
+      "category": "object",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "搪瓷水壶，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-kettle.png",
+      "tags": [
+        "厨房用品",
+        "日常物品"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-teacup",
+      "name": "茶杯与杯碟",
+      "category": "object",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "茶杯与杯碟，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-teacup.png",
+      "tags": [
+        "餐饮用品",
+        "日常物品"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-books",
+      "name": "布面书本",
+      "category": "object",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "布面书本，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-books.png",
+      "tags": [
+        "学习用品",
+        "日常物品"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-phone",
+      "name": "智能手机",
+      "category": "object",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "智能手机，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-phone.png",
+      "tags": [
+        "数码用品",
+        "日常物品"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-clock",
+      "name": "双铃闹钟",
+      "category": "object",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "双铃闹钟，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-clock.png",
+      "tags": [
+        "居家用品",
+        "日常物品"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-chair",
+      "name": "布艺扶手椅",
+      "category": "object",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "布艺扶手椅，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-chair.png",
+      "tags": [
+        "家具",
+        "日常物品"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-cn-student",
+      "name": "中国青年学生",
+      "category": "person",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "中国青年学生，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-cn-student.png",
+      "tags": [
+        "中国人物",
+        "通用人物",
+        "虚构角色"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-cn-worker",
+      "name": "中国维修工人",
+      "category": "person",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "中国维修工人，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-cn-worker.png",
+      "tags": [
+        "中国人物",
+        "通用人物",
+        "虚构角色"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-cn-elder",
+      "name": "中国老年女性",
+      "category": "person",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "中国老年女性，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-cn-elder.png",
+      "tags": [
+        "中国人物",
+        "通用人物",
+        "虚构角色"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-eu-teacher",
+      "name": "欧洲中年教师",
+      "category": "person",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "欧洲中年教师，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-eu-teacher.png",
+      "tags": [
+        "外国人物",
+        "通用人物",
+        "虚构角色"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-eu-reader",
+      "name": "欧洲老年读者",
+      "category": "person",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "欧洲老年读者，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-eu-reader.png",
+      "tags": [
+        "外国人物",
+        "通用人物",
+        "虚构角色"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-af-researcher",
+      "name": "非洲青年研究员",
+      "category": "person",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "非洲青年研究员，复古印刷纸质剪贴，透明背景，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-af-researcher.png",
+      "tags": [
+        "外国人物",
+        "通用人物",
+        "虚构角色"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-duck",
+      "name": "家鸭",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "家鸭，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-duck.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-dog",
+      "name": "田园犬",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "田园犬，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-dog.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-sheep",
+      "name": "绵羊",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "绵羊，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-sheep.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-rabbit",
+      "name": "兔子",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "兔子，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-rabbit.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-lion",
+      "name": "狮子",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "狮子，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-lion.png",
+      "tags": [
+        "动物",
+        "野生动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-tiger",
+      "name": "老虎",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "老虎，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-tiger.png",
+      "tags": [
+        "动物",
+        "野生动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-cat",
+      "name": "家猫",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "家猫，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-cat.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-chicken",
+      "name": "母鸡",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "母鸡，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-chicken.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-cow",
+      "name": "奶牛",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "right",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "奶牛，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-cow.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-horse",
+      "name": "马",
+      "category": "animal",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "left",
+      "depth": "foreground",
+      "text_box": null,
+      "description": "马，独立动物剪贴，透明背景，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-horse.png",
+      "tags": [
+        "动物",
+        "家养动物"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-farmyard",
+      "name": "农家院",
+      "category": "scene",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "background",
+      "text_box": null,
+      "description": "农家院，纸框场景背景，框外透明，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-farmyard.png",
+      "tags": [
+        "场景",
+        "纸框背景"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-pond",
+      "name": "池塘芦苇",
+      "category": "scene",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "background",
+      "text_box": null,
+      "description": "池塘芦苇，纸框场景背景，框外透明，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-pond.png",
+      "tags": [
+        "场景",
+        "纸框背景"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-woodland",
+      "name": "林间空地",
+      "category": "scene",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "background",
+      "text_box": null,
+      "description": "林间空地，纸框场景背景，框外透明，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-woodland.png",
+      "tags": [
+        "场景",
+        "纸框背景"
+      ],
+      "character_identity": null
+    },
+    {
+      "id": "collage-savanna",
+      "name": "草原远山",
+      "category": "scene",
+      "styles": [
+        "paper-collage",
+        "layered-paper-collage"
+      ],
+      "direction": "none",
+      "depth": "background",
+      "text_box": null,
+      "description": "草原远山，纸框场景背景，框外透明，复古印刷质感，保留原色，等比缩放和水平翻转。",
+      "origin": "openai-imagegen",
+      "raster": "collage-savanna.png",
+      "tags": [
+        "场景",
+        "纸框背景"
+      ],
+      "character_identity": null
+    }
+  ]
+}

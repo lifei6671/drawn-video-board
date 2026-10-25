@@ -51,7 +51,7 @@ def parser():
             leaf.add_argument("--project", required=(group, action) not in (("style", "list"), ("typography", "fonts"), ("materials", "list")))
             if group == "materials":
                 if action == "list":
-                    leaf.add_argument("--category", choices=("bubble","emphasis","paper","object"))
+                    leaf.add_argument("--category", choices=("bubble","emphasis","paper","object","person","animal","scene"))
                 else:
                     leaf.add_argument("--id", required=True)
                     leaf.add_argument("--width", type=int, default=600)
@@ -140,7 +140,7 @@ def dispatch(p, a):
         if action == "list":
             return {"materials": [{**{k:v for k,v in item.items() if k != "shapes"},
                                     "preview":str(materials.ROOT/(item["id"]+".png")),
-                                    "svg":str(materials.ROOT/(item["id"]+".svg"))}
+                                    "svg":None if item.get("raster") else str(materials.ROOT/(item["id"]+".svg"))}
                                    for item in materials.catalog(a.category)]}
         return materials.export(p,a.id,(a.width,a.height),{"ink":a.ink,"paper":a.paper,"accent":a.accent},a.flip,a.replace)
     if c == "typography":
