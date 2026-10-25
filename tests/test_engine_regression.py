@@ -10,6 +10,41 @@ import numpy as np
 
 from cs_board_video import media
 from helpers import fixture, prepare_images, prepare_audio, prepare_plans
+from cs_board_video.upstream.scripts.stream_render import _load_hand, TipOverlay
+
+
+class HandAssetTests(unittest.TestCase):
+    def test_faint_cutout_residue_does_not_offset_pen_contact(self):
+        with tempfile.TemporaryDirectory() as base:
+            path = Path(base) / "hand.png"
+            rgba = np.zeros((40, 40, 4), dtype=np.uint8)
+            rgba[10:30, 12:32] = (40, 60, 80, 255)
+            rgba[0, 0] = (40, 60, 80, 1)
+            rgba[39, 39] = (40, 60, 80, 1)
+            cv2.imencode(".png", rgba)[1].tofile(str(path))
+            hand, mask = _load_hand(path, 20)
+            canvas = np.full((60, 60, 3), 255, dtype=np.uint8)
+            TipOverlay(hand, mask).stamp(canvas, 15, 15)
+            self.assertTrue(np.array_equal(canvas[15, 15], [40, 60, 80]))
+            self.assertTrue(np.all(canvas[:15] == 255))
+            self.assertTrue(np.all(canvas[:, :15] == 255))
+            self.assertTrue(np.all(canvas[35:] == 255))
+            self.assertTrue(np.all(canvas[:, 35:] == 255))
+
+    def test_crop_preserves_translucent_pixels_inside_hand(self):
+        with tempfile.TemporaryDirectory() as base:
+            path = Path(base) / "hand.png"
+            rgba = np.zeros((12, 12, 4), dtype=np.uint8)
+            rgba[2:10, 2:10] = (40, 60, 80, 255)
+            rgba[4, 4, 3] = 128
+            rgba[5, 5, 3] = 4
+            cv2.imencode(".png", rgba)[1].tofile(str(path))
+            hand, mask = _load_hand(path, 8)
+            canvas = np.full((8, 8, 3), 255, dtype=np.uint8)
+            TipOverlay(hand, mask).stamp(canvas, 0, 0)
+            for position, alpha in ((2, 128), (3, 4)):
+                expected = np.array([40, 60, 80]) * (alpha / 255) + 255 - alpha
+                np.testing.assert_allclose(canvas[position, position], expected, atol=1)
 
 
 class UpstreamParityTests(unittest.TestCase):

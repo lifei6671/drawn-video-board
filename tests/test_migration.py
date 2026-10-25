@@ -76,7 +76,8 @@ class MigrationTests(unittest.TestCase):
                         return {(type(n).__name__, n.name) for n in ast.walk(tree)
                                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
                     self.assertFalse(symbols(original) - symbols(migrated), item["path"])
-        self.assertEqual(modified, {"webapp/server.py", "scripts/render_stream_whiteboard.py",
+        self.assertEqual(modified, {"assets/drawing-hand-clean.png", "assets/drawing-hand.png",
+                                  "scripts/stream_render.py", "webapp/server.py", "scripts/render_stream_whiteboard.py",
                                   "scripts/merge_scenes.py", "video_renderer/align.mjs", "video_renderer/render.mjs"})
         self.assertFalse((REPO / "cs_board_video/engine/stream_render.py").exists())
 

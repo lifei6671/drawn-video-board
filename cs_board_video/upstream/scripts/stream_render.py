@@ -608,8 +608,8 @@ def _load_hand(path: Path, target_h: int) -> tuple[np.ndarray, np.ndarray] | Non
         gray = cv2.cvtColor(hand, cv2.COLOR_BGR2GRAY)
         _, mask = cv2.threshold(gray, 250, 255, cv2.THRESH_BINARY_INV)
 
-    # 裁到有效区
-    (x0, y0), (x1, y1) = _bounding_box(mask)
+    # 忽略近乎透明的抠图残点，避免有效区左上角偏离笔尖；保留区内原始 alpha。
+    (x0, y0), (x1, y1) = _bounding_box(mask > 8)
     if x1 <= x0 or y1 <= y0:
         return None
     hand = hand[y0:y1 + 1, x0:x1 + 1]

@@ -6,7 +6,7 @@
 旧的 lines/palette/proportions/shading/texture/composition/complexity 详细字段同样可用。
 展示项目内画风预览和配置，经用户确认记录 style 批准。
 
-预设图和原干净绘制手复制到项目。`project.json.config.pen_text` 使用原 make_branded_hand。
+预设图和默认绘制手复制到新项目。默认手为透明背景的白杆棕色笔素材，内置渲染入口使用同一张图；已有项目和自定义预设保存的绘制手保留不变。`project.json.config.pen_text` 使用原 make_branded_hand。
 `canvas_hex` 为白板渲染底色，应与已批准画风一致。
 
 单独风格参考可导入 `style/reference.png`；角色参考放 `characters/references/`。

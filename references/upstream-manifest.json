@@ -64,14 +64,14 @@
     {
       "path": "assets/drawing-hand-clean.png",
       "source_sha256": "19564025bde230e177e10a2dbc029edd494addb5954ef3038817d3a0a9ba01a5",
-      "migrated_sha256": "19564025bde230e177e10a2dbc029edd494addb5954ef3038817d3a0a9ba01a5",
-      "adaptation": "Unmodified migration"
+      "migrated_sha256": "39f3112c6232f94af45ad19a7169a98570481529a2fb579e01d6f5693287e3dd",
+      "adaptation": "User-selected transparent white-barrel brown-marker hand, copied unchanged from the science-motion skill asset; shared default for new projects and web rendering."
     },
     {
       "path": "assets/drawing-hand.png",
       "source_sha256": "978ee3ca979e0bf3f0b6187926828c30464adafbb0a6bbb61c9dbe327d3bfd61",
-      "migrated_sha256": "978ee3ca979e0bf3f0b6187926828c30464adafbb0a6bbb61c9dbe327d3bfd61",
-      "adaptation": "Unmodified migration"
+      "migrated_sha256": "39f3112c6232f94af45ad19a7169a98570481529a2fb579e01d6f5693287e3dd",
+      "adaptation": "Same user-selected hand as drawing-hand-clean.png for direct renderer defaults."
     },
     {
       "path": "assets/preview.html",
@@ -376,8 +376,8 @@
     {
       "path": "scripts/stream_render.py",
       "source_sha256": "13cb9d2ca492a6574145a0204612afd968d7ec64e75463ff03368467551f6a0b",
-      "migrated_sha256": "13cb9d2ca492a6574145a0204612afd968d7ec64e75463ff03368467551f6a0b",
-      "adaptation": "Unmodified migration"
+      "migrated_sha256": "aef641b972fc5b0625b559e0e404d2e3d946acd6a70c4da9ee8e88a84ecb694f",
+      "adaptation": "Ignore near-transparent cutout residue when bounding the hand image so the pen contact stays aligned; retain original alpha inside the crop."
     },
     {
       "path": "start-webapp.ps1",
