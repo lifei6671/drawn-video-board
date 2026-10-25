@@ -790,8 +790,8 @@
     {
       "path": "webapp/server.py",
       "source_sha256": "f45fccf4abd1dfbc9719421b97bdb6ce0bfbaaeea619da1aa4cfa624da509c7e",
-      "migrated_sha256": "0853019d0aebba479b80e827582c84ae0ae02fa50b8ad1718e2f866ece3c8596",
-      "adaptation": "Shared original planning/composition extraction; Codex candidate input; headless import; standalone style reference; project-local Gradio download; user-requested warm chibi builtin style and preview/reference routing"
+      "migrated_sha256": "41f430cf7abe0752d3fcf3363c71c44bfe0b9970aa9bc84d5dd2780bbbe40eaa",
+      "adaptation": "Shared original planning/composition extraction; Codex candidate input; headless import; standalone style reference; project-local Gradio download; user-requested warm chibi builtin style and preview/reference routing; retro monochrome line builtin style with separate opt-in cat character assets"
     },
     {
       "path": "启动白板工坊.bat",
@@ -810,6 +810,21 @@
       "path": "web/public/styles/blue-gray-story.png",
       "sha256": "b495487306b01b9a4ae4da2c2443d281d037ccc2fdb8d7ba71be9407c902b9f3",
       "source": "User-selected simplified hand-drawing sample (woman repairing a bicycle), 2026-10-25; imagegen output bytes preserved; builtin main image shared by preview and generation reference"
+    },
+    {
+      "path": "web/public/styles/retro-mono-line.png",
+      "sha256": "7adeb8123dd837f279fa7dfcc2f8aea15efd75e2a59ee73de065fb12f3a0198b",
+      "source": "Builtin imagegen style-only gardener sample derived from user retro ink reference, 2026-10-25; no cat identity; original output bytes; preview and generation reference."
+    },
+    {
+      "path": "assets/character-references/retro-cat/turnaround.png",
+      "sha256": "411a319848d148dc51accd4d2d4edbe53d0f5dcbde3be6b7cb5310a4cb9538ba",
+      "source": "Builtin imagegen simplified front/profile/back cat character sheet based on user reference, 2026-10-25; original output bytes; separate optional character reference, never auto-selected with the style."
+    },
+    {
+      "path": "assets/character-references/retro-cat/character.json",
+      "sha256": "e0b7f0ad12e56ec3048868bff8cc81d4eebd6eebeba8754c0a6cc12062eb0a58",
+      "source": "Project character-entry template for explicit opt-in, using the existing visual_references.characters schema and project-local imported image path."
     }
   ]
 }

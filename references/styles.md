@@ -1,6 +1,6 @@
 # 画风及原参考库
 
-运行 `style list`，返回 15 个内置预设（原 13 个及新增的暖色Q版叙事漫画风、灰蓝写实叙事漫画风）、本地自定义预设、配方和参考图路径。
+运行 `style list`，返回 16 个内置预设（原 13 个及新增的暖色Q版叙事漫画风、灰蓝写实叙事漫画风、复古黑白线描风）、本地自定义预设、配方和参考图路径。
 列出预设不需要项目或分镜批准；原 `style list --project ...` 调用仍可用。
 分镜批准后使用 `style set --project ... --preset <id或名称>`，或 `style set --project ... --file <json>` 导入自定义 `name` + `recipe`。
 旧的 lines/palette/proportions/shading/texture/composition/complexity 详细字段同样可用。
@@ -98,3 +98,41 @@
 选用后复制预览图和完整配方到项目，将同一图片注册为画风参考，画布底色设为 `#A7B9B9`。
 `images prompts` 的每镜参考清单以及原 Web 首次生图、重新生图和独立生图入口均使用该参考图。
 内置画风在 Web 改名后继续按固定 id 关联素材；用户提供的项目参考与角色设定优先。
+
+## 复古黑白线描风
+
+内置 id：`builtin-retro-mono-line`，名称：`复古黑白线描风`。
+
+- 暖米白纸色底 `#FAF3E3`，黑色墨线、少量黑色平涂与纸色留白，无彩色、灰阶阴影或渐变。
+- 连续封闭轮廓，外线略粗、内线更细，轻微笔压变化；不使用排线、网点、颗粒和做旧纹理。
+- 约 4 头身的概括造型，四肢宽度足够，减少手指线、纽扣、衣褶和装饰，适合先画轮廓与五官再快速填黑。
+- 人物物种、身份、服装和表情服从文案及独立角色参考；不会自动带入猫耳、尾巴、尖牙或固定职业。
+
+画风样图：`cs_board_video/upstream/web/public/styles/retro-mono-line.png`。
+采用“人物浇花”的单幅插画展示画风，避免猫的身份特征污染风格参考。由内置 imagegen 于 2026-10-25 生成，保留原始字节。
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video style set --project content/demo --preset "复古黑白线描风"
+```
+
+选用后，只有画风样图会复制为项目预览及画风参考；未配置角色的项目不会自动新增猫角色。
+该画风沿用现有审批、参考图传递及 Web 生图链路。2026-10-25 的 12 秒无声猫店员绘制预览已获用户确认；该确认仅针对本次绘制效果，不代表其他分镜或正式成片验收。
+
+### 独立角色参考：黑猫店员
+
+猫的三视图单独存放在 `cs_board_video/upstream/assets/character-references/retro-cat/turnaround.png`，
+同目录 `character.json` 是可加入项目 `visual_references.characters` 的角色条目模板，不是画风配置。
+三视图由内置 imagegen 依据用户原图生成，保留尖耳、半眯竖瞳、小尖牙、弯尾及黑背心，
+移除围裙图案，减少纽扣与衣褶，加宽腿部。角色表情可随剧情变化；实际分镜只画所需角度，不照搬三视图排版。
+
+仅在需要这只猫的项目中执行：
+
+```powershell
+.\.venv\Scripts\python.exe -m cs_board_video asset --project content/demo --source cs_board_video/upstream/assets/character-references/retro-cat/turnaround.png --dest characters/references/retro-cat.png
+```
+
+随后将 `character.json` 中的对象追加到项目 `project.json.visual_references.characters` 数组，
+保留现有 `style_image` 和其他角色，不覆盖整个 `visual_references`。
+模板的 `images` 路径对应上述导入目的地；库内资源不能直接作为项目外路径引用。
+角色添加或修改后重新审核画风，再生成提示词；提示词将画风图与角色图分别声明。
+猫也可搭配其他画风使用：选择有参考图的画风，或单独导入该画风的参考图，并保留角色条目。

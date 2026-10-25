@@ -50,7 +50,7 @@
 | --- | --- |
 | storyboard request --duration 秒 [--narrative-only] | 提取原规划请求到 narration/plan-request.json |
 | storyboard adapt --duration 秒 --file 候选JSON [--narrative-only] | 原 make_plan 归一 Codex 返回的数组 |
-| style list | 全部 15 种内置画风及已保存的自定义预设，无需 --project |
+| style list | 全部 16 种内置画风及已保存的自定义预设，无需 --project |
 | style set --preset id或名称 | 选用内置或自定义预设；自定义素材复制到当前项目 |
 | style save [--name 名称] [--replace] | 保存已确认的自定义画风、参考图、绘制手和画布底色；不包含角色 |
 | images prompts | 原风格、角色、参考图和构图提示词 |

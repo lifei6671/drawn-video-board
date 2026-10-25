@@ -88,7 +88,25 @@ WARM_CHIBI_STYLE = "暖色Q版叙事漫画风"
 WARM_CHIBI_STYLE_ID = "builtin-warm-chibi-story"
 BLUE_GRAY_STORY_STYLE = "灰蓝写实叙事漫画风"
 BLUE_GRAY_STORY_STYLE_ID = "builtin-blue-gray-story"
+RETRO_MONO_LINE_STYLE = "复古黑白线描风"
+RETRO_MONO_LINE_STYLE_ID = "builtin-retro-mono-line"
 STYLE_PRESETS = {
+    RETRO_MONO_LINE_STYLE: (
+        "适合先描轮廓与五官、再快速填充少量黑色块的手绘动画原画。暖米白纯净背景，"
+        "仅使用黑色墨线、黑色平涂与纸色留白，不使用彩色点缀、灰阶阴影或渐变。"
+        "复古漫画线描，外轮廓中等偏粗、内部结构线更细，轻微自然笔压变化，线条连续、流畅，主要形状封闭；"
+        "不使用排线、网点、擦笔、纸张颗粒、做旧噪点和反复描摹的碎线。"
+        "造型概括，人物默认约4头身，四肢简洁但宽度足够，手部用清晰轮廓加少量手指线表达动作；"
+        "五官精简而有表情变化，通过眼神、姿态和物件关系表达故事情绪，不固定半眯眼或冷漠表情。"
+        "黑色块集中在少量识别部位，避免大面积连续涂黑；衣服和道具尽量以纸色留白加轮廓表现，"
+        "省略装饰纹样、密集纽扣与多余衣褶，物体边界分明，方便语义分区绘制。"
+        "只保留叙事必要人物、道具和少量环境线索，构图清楚，背景充分留白，预留字幕安全区。"
+        "本预设只定义画风，不定义任何固定角色；人物物种、身份、性别、服装、动作和场景按文案及独立角色参考决定，"
+        "不得自动添加猫耳、尾巴、尖牙、围裙或固定职业，不照搬画风样图中的园丁、浇水动作与盆栽。"
+        "有独立角色参考时，优先保留其身份特征、比例与必要黑色块，画风配方不得改变角色物种。"
+        "输出单幅完整原画，不输出角色三视图、步骤图、对比拼图或画外绘制手；"
+        "禁止文字、字母、数字、标签、对白框、漫画边框、Logo、水印、摄影写实和3D效果。"
+    ),
     BLUE_GRAY_STORY_STYLE: (
         "低饱和灰蓝、灰绿与暖米白为主色，浅褐木色和自然肤色形成克制的冷暖对照，少量暗青色点缀。"
         "二维写实叙事漫画，人物保持自然写实比例，五官概括但结构可信；通过眼神、手势和姿态表达情绪，情绪服从文案。"
@@ -281,6 +299,14 @@ BUILTIN_STYLE_DEFINITIONS = [
         "image_url": "/styles/blue-gray-story.png",
         "use_as_reference": True,
         "canvas_hex": "#A7B9B9",
+    },
+    {
+        "id": RETRO_MONO_LINE_STYLE_ID,
+        "name": RETRO_MONO_LINE_STYLE,
+        "description": "黑白墨线、暖纸留白、简洁造型与克制黑块",
+        "image_url": "/styles/retro-mono-line.png",
+        "use_as_reference": True,
+        "canvas_hex": "#FAF3E3",
     },
 ]
 BUILTIN_STYLE_BY_ID = {item["id"]: item for item in BUILTIN_STYLE_DEFINITIONS}
