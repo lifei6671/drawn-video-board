@@ -34,8 +34,8 @@
     {
       "path": "SKILL.md",
       "source_sha256": "4eac76102d2dd888991d58c69d947832db1fe8353896a31d5b733f1156b73eba",
-      "migrated_sha256": "4eac76102d2dd888991d58c69d947832db1fe8353896a31d5b733f1156b73eba",
-      "adaptation": "Unmodified migration"
+      "migrated_sha256": "2234fd098fde9b6c574a4b3e6dfb089b8a62fc8e0f81d4d0cda8d7a3eea78731",
+      "adaptation": "Unmodified migration; user-requested contour outline tracing, continuous pen-path color strokes with unpainted pen travel, retired grid-block/diffusion implementations, shared standalone renderer"
     },
     {
       "path": "agents/openai.yaml",
@@ -358,8 +358,8 @@
     {
       "path": "scripts/render_stream_whiteboard.py",
       "source_sha256": "091e856a81c249883754117b13abd0db59316a0341dcf7dad6a015391f48e954",
-      "migrated_sha256": "46026c3d6693753fcd915f6f67773287d6e00cbe0f4c656a371da36d0e6d7607",
-      "adaptation": "Shared full-resolution paths and preview writer; fully occluded frame budget fix; optional subject polygon masks with holes, separate ink/color phases and progressive grayscale fills without final full-image replacement"
+      "migrated_sha256": "22733d8dca9f15d5163c3aea1420f0d8f05c637482a96af5b21be17aa640ae99",
+      "adaptation": "Shared full-resolution paths and preview writer; fully occluded frame budget fix; optional subject polygon masks with holes, separate ink/color phases and progressive grayscale fills without final full-image replacement; user-requested contour outline tracing, continuous pen-path color strokes with unpainted pen travel, retired grid-block/diffusion implementations, shared standalone renderer"
     },
     {
       "path": "scripts/restart_backend_when_idle.ps1",
@@ -376,8 +376,8 @@
     {
       "path": "scripts/stream_render.py",
       "source_sha256": "13cb9d2ca492a6574145a0204612afd968d7ec64e75463ff03368467551f6a0b",
-      "migrated_sha256": "aef641b972fc5b0625b559e0e404d2e3d946acd6a70c4da9ee8e88a84ecb694f",
-      "adaptation": "Ignore near-transparent cutout residue when bounding the hand image so the pen contact stays aligned; retain original alpha inside the crop."
+      "migrated_sha256": "cd2c7b6a2bcf070c0f937008afca709ad6655f06bf1f4b7b29e18ad82d9ea39a",
+      "adaptation": "Ignore near-transparent cutout residue when bounding the hand image so the pen contact stays aligned; retain original alpha inside the crop.; user-requested contour outline tracing, continuous pen-path color strokes with unpainted pen travel, retired grid-block/diffusion implementations, shared standalone renderer"
     },
     {
       "path": "start-webapp.ps1",

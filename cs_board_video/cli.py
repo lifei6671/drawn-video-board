@@ -40,7 +40,7 @@ def parser():
             sub.add_argument("--source", required=True)
             sub.add_argument("--dest", required=True)
             sub.add_argument("--replace", action="store_true")
-    for group, actions in {"materials": ("list", "export"), "typography": ("fonts", "font", "sample", "background"), "storyboard": ("validate", "import", "request", "adapt"), "deck": ("request", "adapt"), "style": ("set", "list", "save"),
+    for group, actions in {"pen": ("list", "set"), "materials": ("list", "export"), "typography": ("fonts", "font", "sample", "background"), "storyboard": ("validate", "import", "request", "adapt"), "deck": ("request", "adapt"), "style": ("set", "list", "save"),
                            "image-mode": ("set",), "images": ("validate", "review", "digest", "prompts", "fit", "key-text"),
                            "audio": ("import", "synthesize", "verify", "align"), "timeline": ("build",),
                            "annotation": ("build", "preview", "import"), "preview": ("render", "compose")}.items():
@@ -48,7 +48,9 @@ def parser():
         actions_parser = sub.add_subparsers(dest="action", required=True)
         for action in actions:
             leaf = actions_parser.add_parser(action)
-            leaf.add_argument("--project", required=(group, action) not in (("style", "list"), ("typography", "fonts"), ("materials", "list")))
+            leaf.add_argument("--project", required=(group, action) not in (("pen", "list"), ("style", "list"), ("typography", "fonts"), ("materials", "list")))
+            if (group, action) == ("pen", "set"):
+                leaf.add_argument("--type", required=True, choices=("marker", "fountain"))
             if group == "materials":
                 if action == "list":
                     leaf.add_argument("--category", choices=("bubble","emphasis","paper","object","person","animal","scene"))
@@ -133,6 +135,9 @@ def asset_import(p, source, dest, replace=False):
 
 def dispatch(p, a):
     c, action = a.command, getattr(a, "action", None)
+    if c == "pen":
+        from . import pens
+        return {"pens": pens.catalog()} if action == "list" else pens.select(p, a.type)
     if getattr(a, "scene", None):
         p.scene(a.scene)
     if c == "materials":
@@ -194,7 +199,8 @@ def dispatch(p, a):
             custom = definition["source"] == "custom"
             if custom:
                 data = definition["style"]
-                config = {**p.data["config"], "canvas_hex": definition["canvas_hex"]}
+                config = {**p.data["config"], "canvas_hex": definition["canvas_hex"],
+                          "pen_type": definition.get("pen_type", "marker")}
                 validate_config(config)
                 asset_import(p, definition["hand_path"], "style/drawing-hand.png", True)
                 p.data["config"] = config
@@ -217,12 +223,12 @@ def dispatch(p, a):
         else:
             data = read_json(Path(a.file))
         p.save("style/style.json", data)
-        from .bridge import ROOT
-        hand = ROOT / "assets/drawing-hand-clean.png"
+        from .pens import hand_path
+        hand = hand_path(p.data["config"].get("pen_type", "marker"))
         if not p.path("style/drawing-hand.png").exists():
             require(hand.exists(), "安装包未包含绘制手模板；请从 Skill assets 导入")
             shutil.copyfile(hand, p.path("style/drawing-hand.png"))
-        if not custom and p.data["config"].get("pen_text"):
+        if not custom and p.data["config"].get("pen_text") and p.data["config"].get("pen_type", "marker") == "marker":
             with project_context(p) as module:
                 module.make_branded_hand(p.data["config"]["pen_text"], p.path("style/drawing-hand.png"))
         return {"digest": w.style_target(p), "approval_required": True}
@@ -237,11 +243,16 @@ def dispatch(p, a):
             return prompts(p)
         if action in ("fit", "key-text"):
             w.mode_ready(p)
+            from . import rolls
             from .bridge import project_context
             changed = []
+            reused = []
             for index, scene in enumerate(p.scenes()):
                 sid = scene["scene_id"]
                 if a.scene and a.scene != sid:
+                    continue
+                if rolls.settings(scene)["mode"] == "return":
+                    reused.append(sid)
                     continue
                 image = p.path(f"scenes/{sid}/image.png")
                 original = p.path(f"scenes/{sid}/image.source.png")
@@ -266,7 +277,7 @@ def dispatch(p, a):
                         phrases = [scene.get("key_text") or scene.get("upstream", {}).get("key_text") or scene["narrative_goal"]]
                     add_key_text(fitted, phrases, image)
                 changed.append(sid)
-            return {"changed": changed, "visual_review_required": True}
+            return {"changed": changed, "reused": reused, "visual_review_required": bool(changed)}
         if action == "validate":
             return w.validate_images(p)
         if action == "digest":
@@ -322,7 +333,8 @@ def dispatch(p, a):
                 asset_import(p, a.file, f"scenes/{sid}/annotation.json", True)
             else:
                 w.annotation_ready(p, sid)
-                image = p.path(f"scenes/{sid}/image.png")
+                from . import rolls
+                image = rolls.image_path(p,sid)
                 annotation = p.path(f"scenes/{sid}/annotation.json")
                 media.run([sys.executable, ROOT / "scripts/render_annotation_preview.py", image,
                            annotation, p.path(f"scenes/{sid}/annotation-preview.png")])
@@ -382,7 +394,7 @@ def main(argv=None):
             project = initialize(a.content, a.name, a.script, read_json(Path(a.config)) if a.config else None)
             result = {"project": str(project.root), "state": "script_ready"}
             code = 0
-        elif (a.command, getattr(a, "action", None)) in (("style", "list"), ("typography", "fonts"), ("materials", "list")):
+        elif (a.command, getattr(a, "action", None)) in (("pen", "list"), ("style", "list"), ("typography", "fonts"), ("materials", "list")):
             result = dispatch(None, a)
             code = 0
         else:

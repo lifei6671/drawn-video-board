@@ -46,7 +46,8 @@ def presets():
         result.append({"id": key, "name": item["style"]["name"], "source": "custom",
                        "recipe": item["style"]["recipe"], "canvas_hex": item["style"]["canvas_hex"],
                        "image_path": str(library_path(item["reference"])) if item.get("reference") else None,
-                       "hand_path": str(library_path(item["hand"])), "style": item["style"]})
+                       "hand_path": str(library_path(item["hand"])), "style": item["style"],
+                       "pen_type": item.get("pen_type", "marker")})
     return result
 
 
@@ -99,7 +100,8 @@ def save(p, name=None, replace=False):
         require(key not in items or replace, "同名预设已存在；更新需显式 --replace")
         item = {"style": style,
                 "reference": store_image(reference) if reference else None,
-                "hand": store_image(p.path("style/drawing-hand.png"))}
+                "hand": store_image(p.path("style/drawing-hand.png")),
+                "pen_type": p.data["config"].get("pen_type", "marker")}
         items[key] = item
         atomic_json(library_path("library.json"), {"schema_version": 1, "presets": items})
     return {"id": key, "name": name, "library": str(LIBRARY_DIR.resolve()), "replaced": replaced}

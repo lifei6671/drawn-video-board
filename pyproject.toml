@@ -9,6 +9,7 @@ description = "人工审核驱动的独立 Codex 手绘视频工作流"
 requires-python = ">=3.11"
 dependencies = [
   "numpy>=1.26",
+  "scipy>=1.13",
   "opencv-python>=4.9",
   "Pillow>=10",
   "av>=12",
@@ -49,6 +50,7 @@ cs_board_video = [
   "upstream/assets/cs-board-pipeline.svg",
   "upstream/assets/drawing-hand-clean.png",
   "upstream/assets/drawing-hand.png",
+  "upstream/assets/drawing-hand-fountain.png",
   "upstream/assets/preview.html",
   "upstream/assets/sponsors/metaso.png",
   "upstream/assets/style-references/oil-visual/LICENSE",
@@ -97,6 +99,10 @@ cs_board_video = [
   "upstream/scripts/render_annotation_preview.py",
   "upstream/scripts/render_infographic.py",
   "upstream/scripts/render_stream_whiteboard.py",
+  "upstream/scripts/fountain_pen.py",
+  "upstream/scripts/sweety_line_topology.py",
+  "upstream/scripts/sweety_stroke_paths.py",
+  "upstream/assets/licenses/sweety-handdraw-video-LICENSE.txt",
   "upstream/scripts/restart_backend_when_idle.ps1",
   "upstream/scripts/semantic_timeline.py",
   "upstream/scripts/stream_render.py",

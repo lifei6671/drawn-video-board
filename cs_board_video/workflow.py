@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import shutil
 
-from . import media
+from . import media, rolls
 from .project import WorkflowError, digest, file_hash, now, read_json, require
 
 
@@ -28,6 +28,7 @@ def validate_storyboard(p):
         require(isinstance(scene["estimated_duration"], (float, int)) and math.isfinite(scene["estimated_duration"])
                 and scene["estimated_duration"] > 0, "预估时长必须为正数秒")
         require(scene["transition"] == "cut", "v1 仅支持 cut 硬切转场，请在分镜中明确")
+    rolls.validate(scenes, p.data["config"].get("render_engine", "whiteboard"))
     original = p.path("narration/original.txt").read_text(encoding="utf-8-sig")
     require(normalize("".join(s["narration"] for s in scenes)) == normalize(original),
             "分镜口播必须按顺序完整覆盖原文，不得遗漏、改写或重复")
@@ -41,6 +42,7 @@ def validate_storyboard(p):
 def board_target(p, scene):
     from . import typography
     return digest({"scene": scene, "script": p.hash("narration/original.txt"),
+                   **({"a_scene": p.scene(rolls.anchor(p,scene['scene_id']))} if rolls.anchor(p,scene['scene_id']) else {}),
                    **({"typography": typography.inputs(p)} if scene.get("visual_text") else {})})
 
 
@@ -90,7 +92,9 @@ def mode_ready(p):
 
 
 def image_target(p, scene_id):
-    return digest({"image": p.hash(f"scenes/{scene_id}/image.png"), "scene": p.scene(scene_id),
+    source_id = rolls.image_scene(p,scene_id)
+    return digest({"image": p.hash(f"scenes/{source_id}/image.png"), "scene": p.scene(scene_id),
+                   **({"reused_image": image_target(p,source_id)} if source_id != scene_id else {}),
                    "style": style_target(p), "mode": mode_target(p),
                    "prompt": p.hash(f"scenes/{scene_id}/prompt.md")})
 
@@ -103,7 +107,7 @@ def review_image(p, scene_id, expected, evidence):
     actual = image_target(p, scene_id)
     require(expected == actual, "图片版本已改变，请重新查看")
     require(evidence.strip(), "必须提供实际看图后的逐项视觉检查证据")
-    media.image_info(p.path(f"scenes/{scene_id}/image.png"))
+    media.image_info(rolls.image_path(p,scene_id))
     p.save(f"scenes/{scene_id}/image-metadata.json", {
         "digest": actual, "reviewer": "agent", "evidence": evidence,
         "checks": dict.fromkeys(VISUAL_CHECKS, "PASS"), "at": now(),
@@ -121,16 +125,17 @@ def validate_images(p):
         sid = scene["scene_id"]
         row = {"scene_id": sid, "digest": image_target(p, sid), "errors": []}
         try:
-            info = media.image_info(p.path(f"scenes/{sid}/image.png"))
+            source_id = rolls.image_scene(p,sid)
+            info = media.image_info(rolls.image_path(p,sid))
             row.update(info)
             require(min(info["width"], info["height"]) >= 64, "源图短边至少为 64 像素")
             row["upscale_required"] = info["width"] < config["width"] or info["height"] < config["height"]
             require(abs(info["width"] / info["height"] - config["width"] / config["height"]) < .01,
                     "图片比例与项目画幅不符")
-            require(info["contrast_std"] >= 3 or scene.get("visual_mode") == "text_only", "图片接近空白，需检查线条")
+            require(info["contrast_std"] >= 3 or p.scene(source_id).get("visual_mode") == "text_only", "图片接近空白，需检查线条")
             require(p.hash(f"scenes/{sid}/prompt.md"), "缺少实际使用的 prompt.md")
-            metadata = p.load(f"scenes/{sid}/image-metadata.json", {})
-            require(metadata.get("digest") == row["digest"] and
+            metadata = p.load(f"scenes/{source_id}/image-metadata.json", {})
+            require(metadata.get("digest") == image_target(p,source_id) and
                     all(metadata.get("checks", {}).get(k) == "PASS" for k in VISUAL_CHECKS),
                     "缺少当前版本的视觉检查；先查看图片再执行 images review")
         except WorkflowError as error:
@@ -149,11 +154,11 @@ def validate_images(p):
 
 def images_ready(p):
     mode_ready(p)
-    targets = [image_target(p, s["scene_id"]) for s in p.scenes()]
     require(p.fresh("images", image_validation_inputs(p)), "图片验收缺失或已失效，请重新验收")
-    for scene, target in zip(p.scenes(), targets):
-        metadata = p.load(f"scenes/{scene['scene_id']}/image-metadata.json", {})
-        require(metadata.get("digest") == target and
+    for scene in p.scenes():
+        source_id = rolls.image_scene(p,scene['scene_id'])
+        metadata = p.load(f"scenes/{source_id}/image-metadata.json", {})
+        require(metadata.get("digest") == image_target(p,source_id) and
                 all(metadata.get("checks", {}).get(k) == "PASS" for k in VISUAL_CHECKS),
                 "图片视觉检查已失效")
 
@@ -289,15 +294,21 @@ def annotation_inputs(p, sid):
 
 
 def annotation_validate(p, sid, annotation):
-    from .upstream.scripts.render_stream_whiteboard import validate_subject_contours
+    from .upstream.scripts.render_stream_whiteboard import validate_subject_contours, validate_drawing_layers
     try:
         validate_subject_contours(annotation)
+        validate_drawing_layers(annotation)
     except ValueError as error:
         raise WorkflowError(str(error)) from error
-    info = media.image_info(p.path(f"scenes/{sid}/image.png"))
+    info = media.image_info(rolls.image_path(p,sid))
+    if "layers" in annotation:
+        media.layer_images(p, sid, annotation)
     require(annotation.get("canvas") == {"width": info["width"], "height": info["height"]}, "标注画布必须等于原图尺寸")
     require(abs(annotation.get("sceneDurationMs", 0) - row_for(p, sid)["duration_ms"]) < .01, "标注时长与时间轴不符")
     elements = annotation.get("elements", [])
+    if rolls.static(p,sid):
+        require(elements == [] and "layers" not in annotation, "直接展示或返回镜头不应包含绘制元素或新图层")
+        return
     require(elements, "标注必须包含实际看图确定的元素")
     ids = set()
     end = 0
@@ -326,6 +337,18 @@ def annotation_build(p, selected=None):
     for index, scene in enumerate(p.scenes()):
         sid = scene["scene_id"]
         if selected and sid != selected:
+            continue
+        if rolls.static(p,sid):
+            info = media.image_info(rolls.image_path(p,sid))
+            result = {"sceneId":sid,"canvas":{"width":info["width"],"height":info["height"]},
+                      "sceneDurationMs":row_for(p,sid)["duration_ms"],"elements":[]}
+            path = f"scenes/{sid}/annotation.json"
+            if p.fresh("annotation:"+sid,annotation_inputs(p,sid)):
+                continue
+            annotation_validate(p,sid,result)
+            p.save(path,result)
+            p.receipt("annotation:"+sid,annotation_inputs(p,sid),[path])
+            changed.append(sid)
             continue
         plan = p.load(f"scenes/{sid}/drawing-plan.json", {})
         require(not plan or (plan.get("image_sha256") == p.hash(f"scenes/{sid}/image.png") and plan.get("visual_evidence")),
@@ -356,6 +379,8 @@ def annotation_build(p, selected=None):
                     element["reveal"]["startMs"] -= 200
         result["sceneId"] = sid
         result["sceneDurationMs"] = row_for(p, sid)["duration_ms"]
+        if "layers" in plan:
+            result["layers"] = plan["layers"]
         if overrides:
             require(len(overrides) == len(result["elements"]), "分镜面板和人工区域数量不匹配")
             for element, override in zip(result["elements"], overrides):
@@ -387,18 +412,23 @@ def scene_inputs(p, sid):
         remotion = {k: v for k, v in props.items() if k not in ("pages", "totalDurationFrames", "totalDurationMs")}
         remotion["page"] = props.get("pages", [])[index]
     return digest({"scene": image_target(p, sid), "annotation": p.hash(f"scenes/{sid}/annotation.json"),
+                   **({"a_scene": scene_inputs(p,rolls.anchor(p,sid))} if rolls.anchor(p,sid) else {}),
                    "timing": row_for(p, sid), "drawing": drawing_config(p),
                    "engine": engine_hash(), "hand": p.hash("style/drawing-hand.png"), "remotion": remotion,
+                   "layers": media.layer_asset_hashes(p, sid, p.load(f"scenes/{sid}/annotation.json", {})),
                    **({"typography": typography.inputs(p), "text_engine": file_hash(Path(__file__).with_name("text_render.py"))}
                       if p.scene(sid).get("visual_text") else {})})
 
 
 def engine_hash():
     from .bridge import ROOT
-    files = ("scripts/stream_render.py", "scripts/render_stream_whiteboard.py", "scripts/semantic_timeline.py",
+    files = ("scripts/stream_render.py", "scripts/render_stream_whiteboard.py", "scripts/fountain_pen.py",
+             "scripts/sweety_line_topology.py", "scripts/sweety_stroke_paths.py", "scripts/semantic_timeline.py",
              "scripts/merge_scenes.py", "scripts/add_key_text.py", "webapp/server.py",
              "video_renderer/render.mjs", "video_renderer/src/video.tsx")
-    return digest({name: file_hash(ROOT / name) for name in files})
+    return digest({**{name: file_hash(ROOT / name) for name in files},
+                   "rolls":file_hash(Path(__file__).with_name("rolls.py")),
+                   "media":file_hash(Path(__file__).with_name("media.py"))})
 
 
 def annotation_ready(p, sid):
@@ -436,6 +466,8 @@ def render(p, preview, selected=None, size=None):
         if selected and sid != selected:
             continue
         annotation = annotation_ready(p, sid)
+        if rolls.anchor(p,sid):
+            annotation_ready(p,rolls.anchor(p,sid))
         inputs = scene_inputs(p, sid)
         target_size = size if preview else None
         key = ("preview:" if preview else "render:") + sid

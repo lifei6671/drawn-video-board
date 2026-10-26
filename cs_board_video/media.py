@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 
 from .project import WorkflowError, atomic_json, file_hash, require
-from .bridge import ROOT as UPSTREAM_ROOT, RegionStreamRenderer, Config, _imread_any, project_context
+from .bridge import ROOT as UPSTREAM_ROOT, RegionStreamRenderer, Config, _imread_any, project_context, layer_asset_paths, load_layer_images
 
 
 def run(argv, *, cwd=None, env=None):
@@ -79,26 +79,51 @@ class PreviewWriter:
         self.writer.release()
 
 
+def layer_asset_hashes(project, scene_id, annotation):
+    try:
+        paths = layer_asset_paths(annotation, project.path(f"scenes/{scene_id}"))
+    except ValueError as error:
+        raise WorkflowError(str(error)) from error
+    result = {}
+    for key, path in paths.items():
+        value = file_hash(path)
+        require(value, f"图层素材缺失: {path.name}")
+        result[key] = value
+    return result
+
+
+def layer_images(project, scene_id, annotation):
+    try:
+        return load_layer_images(annotation, project.path(f"scenes/{scene_id}"))
+    except (ValueError, OSError) as error:
+        raise WorkflowError(str(error)) from error
+
+
 def native_renderer(project, scene_id, annotation):
+    from . import rolls
     config = project.data["config"]
     width, height = config["width"], config["height"]
     require(width % 10 == 0 and height % 10 == 0 and min(width, height) >= 100,
             "正式画幅宽高须为 10 的倍数且至少 100 像素")
-    source = _imread_any(project.path(f"scenes/{scene_id}/image.png"))
+    source = _imread_any(rolls.image_path(project,scene_id))
     require(source is not None, f"镜头图片无法解码: {scene_id}")
     # Validate aspect before resizing: canonical geometry remains exact.
     source = cv2.resize(source, (width, height), interpolation=cv2.INTER_AREA)
     cfg = Config(fps=config["fps"], cap_long_edge=max(width, height),
                  ink_path_mode=config["ink_path"], color_fill=config["color_fill"],
-                 canvas_hex=config["canvas_hex"])
+                 canvas_hex=config["canvas_hex"], pen_type=config.get("pen_type", "marker"))
     return RegionStreamRenderer(source, annotation, cfg,
                                 project.path("style/drawing-hand.png"), config["bare_tip"],
-                                max_skeleton_strokes=config["stroke_detail"])
+                                max_skeleton_strokes=config["stroke_detail"],
+                                layer_images=layer_images(project, scene_id, annotation))
 
 
 def render_scene(project, scene_id, annotation, inputs, preview_size=None):
+    from . import rolls
     if project.data["config"].get("render_engine") == "remotion":
         return render_remotion_scene(project, scene_id, inputs, preview_size)
+    if rolls.static(project,scene_id):
+        return rolls.render_static(project,scene_id,annotation,inputs,preview_size)
     prefix = f"scenes/{scene_id}"
     renderer = native_renderer(project, scene_id, annotation)
     cache_path = f"render/cache/{scene_id}-paths.json"
@@ -107,9 +132,9 @@ def render_scene(project, scene_id, annotation, inputs, preview_size=None):
         elements = sorted(annotation["elements"], key=lambda e: e["reveal"]["startMs"])
         paths = []
         for index, element in enumerate(elements):
+            renderer.prepare_element(element)
             allowed = renderer._allowed_mask(element, elements[index + 1:])
-            paths.append(renderer._region_skeleton_strokes(allowed) if renderer.subject_mode or renderer.cfg.ink_path_mode == "skeleton"
-                         else renderer._region_grid_path(allowed))
+            paths.append(renderer._region_skeleton_strokes(allowed))
         cached = {"inputs": inputs, "canonical_size": [renderer.out_w, renderer.out_h], "paths": paths}
         project.save(cache_path, cached)
         project.receipt("paths:" + scene_id, inputs, [cache_path])
@@ -141,6 +166,17 @@ def render_scene(project, scene_id, annotation, inputs, preview_size=None):
     pending.replace(output)
     raw.unlink(missing_ok=True)
     quality = drawing_checks(output, renderer, annotation, text_overlay)
+    if quality["passed"] and rolls.has_dependants(project,scene_id):
+        completed = renderer._snapshot().copy()
+        if text_overlay:
+            text_overlay.paint(completed,annotation["sceneDurationMs"])
+        rolls.store_completed(project,scene_id,completed,inputs)
+    if rolls.settings(project.scene(scene_id))["layout"] == "inset":
+        require(quality["passed"], "B 镜原始绘制检查失败", 5)
+        expected = renderer.color_img.copy()
+        if text_overlay:
+            text_overlay.paint(expected,annotation["sceneDurationMs"])
+        quality = rolls.compose_inset(project,scene_id,output,expected,annotation["sceneDurationMs"],quality)
     project.save(f"reports/{scene_id}-{'preview' if preview_size else 'final'}.json", quality)
     contact = project.path(f"{prefix}/{'preview' if preview_size else 'final'}-contact.png")
     contact_sheet(output, contact)
@@ -229,6 +265,22 @@ def drawing_checks(path, renderer, annotation, text_overlay=None):
             # Image-region pixels may legitimately be occupied by the moving hand.
             # Report that case as requiring human review, never as a mask PASS.
             if renderer.tip is None and text_overlay is None:
+                if renderer.layered_mode:
+                    completed = cv2.resize(renderer.completed_layers_image(at_ms + 1000 / fps).astype(np.uint8),
+                                           (frame.shape[1], frame.shape[0]))
+                    active = np.zeros((renderer.out_h, renderer.out_w), bool)
+                    for e, mask in zip(elements, subject_masks):
+                        if e["reveal"]["startMs"] <= at_ms < e["reveal"]["startMs"] + e["reveal"]["durationMs"]:
+                            active |= mask
+                    for e, mask in zip(elements, subject_masks):
+                        if at_ms + 1000 / fps < e["reveal"]["startMs"]:
+                            future = cv2.resize((mask & ~active).astype(np.uint8),
+                                                (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST) > 0
+                            if future.any() and cv2.absdiff(frame, completed)[future].mean() > 10:
+                                leakage.append({"frame": index, "element": e["id"]})
+                    last = frame
+                    index += 1
+                    continue
                 for ei, e in enumerate(elements):
                     if at_ms + 1000 / fps < e["reveal"]["startMs"]:
                         if subject_masks is not None:

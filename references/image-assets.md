@@ -2,6 +2,8 @@
 
 `image-mode set --choice agent|manual` 后仍需记录用户选择的批准。
 每个镜头路径：`scenes/scene-NNN/prompt.md`、`image.png`、`image-metadata.json`。
+例外：A/B-roll 的 `roll.mode=return` 返回镜无需独立图片和图片检查记录；提示词会注明复用哪个 A 镜，其原图、图层与文字由原 A 镜提供，沿用原图视觉检查。其他 A/B 镜仍须正常准备和验收自己的主图。
+画中画 B 镜图片只画辅助镜头本身，不预先把主场景或画中画边框拼入图片；合成器按分镜位置叠加，完整预览时检查是否遮挡重要内容。
 `images prompts` 直接使用原 build_board_prompt，包含已批准的画风、构图、主体和角色参考约束。
 Remotion 尚未配音/生成 deck 时，将批准叙事的原 elements 映射为原插图字段；有 deck 后使用
 该页原 illustration_elements 与布局，防止叙事阶段的主体在提示词中丢失。
@@ -25,3 +27,5 @@ Agent 实际看图检查：内容符合分镜、人物一致、画风一致、�
 
 替换已有素材必须显式 `asset --replace`；新旧原件按摘要保留在项目内
 `render/cache/imports/`。不能覆盖原始口播、状态和审核文件。
+
+有遮挡的场景必须额外准备独立背景底图与透明前景，按实际深度组织任意数量的图层，不能把前景留白洞当作背景。每层 PNG 对齐同一完整画布，并生成 image.png 合成参考图；独立素材保存在 scenes/scene-NNN/layers/，路径和绘制顺序写入 drawing-plan.json 顶层 layers 与元素 layer_id。逐层核对遮挡、透明边缘和下层完整度，再使用分层预览确认。单张图不能提供被遮住的背景，需独立补绘并记录实际来源。

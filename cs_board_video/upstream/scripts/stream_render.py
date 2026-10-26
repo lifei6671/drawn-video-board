@@ -53,7 +53,7 @@ def _imread_any(path: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray |
 @dataclass(frozen=True)
 class Config:
     fps: int = 30                  # 30fps 足够流畅，并避免无意义地翻倍编码体积
-    grid_edge: int = 10            # 更小的网格减少线稿揭示的块状感
+    grid_edge: int = 10            # 保留输出画幅对齐参数，不再用于分块绘制
     sample_step: int = 2           # 笔尖轨迹的像素采样间距
     cap_long_edge: int = 1440      # 输出约 1440x810，兼顾清晰度与生成速度
     brush_radius: int = 40         # 添彩阶段圆形墨刷半径
@@ -72,8 +72,8 @@ class Config:
     match_bg: bool = True          # 把原图背景染成画布底色，使起笔/上色背景一致
     match_bg_threshold: int = 28   # 与原图背景色差异小于此值视为背景（BGR 三通道和）
     steps_per_frame: int = 4       # 每帧推进的落点数基准
-    # ── contour-wipe 上色模式专用 ──
-    color_fill: str = "contour-wipe"  # 上色风格: "contour-wipe" 轮廓感知自上而下扫描(默认) | "brush" 沿轨迹刷
+    # ── 旧阻力扫描参数兼容读取，直接填色不使用这些数值 ──
+    color_fill: str = "paint"       # 沿用现有画笔，左右往返并从上向下沿笔尖路径连续落色
     wipe_decay: float = 0.86       # 阻力场逐行向下衰减系数（半衰期≈4.6px）
     wipe_delay_ratio: float = 0.04  # 轮廓处前沿被扣减的像素比例（×h，钳制到[12,52]）
     wipe_blocks: int = 18          # 笔尖横向来回扫动的趟数
@@ -93,15 +93,62 @@ class Config:
     stroke_pause_max_frames: int = 3
     stroke_turn_weight: float = 0.75
     # ── 笔迹路径模式 ──
-    # ink_path_mode: "grid" 网格格中心插值(默认) | "skeleton" 骨架级像素追踪
-    ink_path_mode: str = "grid"
+    # 所有入口只使用真实轮廓骨架，旧 grid 配置归一到 skeleton
+    ink_path_mode: str = "skeleton"
     skeleton_min_points: int = 24       # 过滤纹理和短小杂线，只让手跟随主要轮廓
     skeleton_resample_spacing: float = 5.0  # 降低笔尖抖动与无意义微移动
+    pen_type: str = "marker"       # marker 马克笔；fountain 钢笔
+
+
+    def __post_init__(self):
+        if self.pen_type not in ("marker", "fountain"):
+            raise ValueError("未知画笔类型")
+        if self.ink_path_mode not in ("skeleton", "grid"):
+            raise ValueError("未知笔迹模式")
+        if self.color_fill not in ("contour", "contour-wipe", "brush", "paint"):
+            raise ValueError("未知上色模式")
+        object.__setattr__(self, "ink_path_mode", "skeleton")
+        object.__setattr__(self, "color_fill", "paint")
+
+    @property
+    def pen_reveal_radius(self) -> int:
+        return max(1, self.ink_reveal_radius // 2) if self.pen_type == "fountain" else self.ink_reveal_radius
 
 
 # ──────────────────────────────────────────────────────────────
 # 小工具
 # ──────────────────────────────────────────────────────────────
+def _paint_strokes(mask: np.ndarray, radius: int) -> list[list[tuple[int, int]]]:
+    """Plan actual pen strokes, removing only pixels each round-ended line covers."""
+    remaining = mask.astype(np.uint8)
+    strokes = []
+    forward = True
+    thickness = radius * 2 + 1
+    for y in range(mask.shape[0]):
+        xs = np.flatnonzero(remaining[y])
+        if not len(xs):
+            continue
+        runs = np.split(xs, np.flatnonzero(np.diff(xs) > 1) + 1)
+        if not forward:
+            runs = runs[::-1]
+        for run in runs:
+            if not remaining[y, run[0]:run[-1] + 1].any():
+                continue
+            a, b = (int(run[0]), y), (int(run[-1]), y)
+            if not forward:
+                a, b = b, a
+            if strokes and math.dist(strokes[-1][-1], a) <= radius * 3:
+                corner = (strokes[-1][-1][0], a[1])
+                cv2.line(remaining, strokes[-1][-1], corner, 0, thickness, cv2.LINE_8)
+                cv2.line(remaining, corner, a, 0, thickness, cv2.LINE_8)
+                strokes[-1].extend((corner, a, b))
+            else:
+                strokes.append([a, b])
+            cv2.line(remaining, a, b, 0, thickness, cv2.LINE_8)
+        forward = not forward
+    return strokes
+
+
 def _hex_to_bgr(hex_color: str) -> np.ndarray:
     digits = hex_color.lstrip("#")
     if len(digits) != 6:
@@ -976,23 +1023,15 @@ class PhasePlan:
 
 def plan_phases(total_ms: int, cfg: Config) -> PhasePlan:
     """
-    把总时长切成 起笔/添彩/凝视 三段。
-    凝视段先用基准秒数占位，剩余时长按权重分给起笔与添彩；
-    若剩余无法被权重和整除，余数补给凝视段，避免精度丢失。
+    把总时长切成起笔/添彩/凝视三段，整数帧总数保持不变。
+    凝视最多占三分之一，短片也保留轮廓绘制时间。
     """
+    total_frames = max(0, round(total_ms * cfg.fps / 1000))
+    gaze_frames = min(max(0, round(cfg.gaze_seconds * cfg.fps)), total_frames // 3)
+    drawing_frames = total_frames - gaze_frames
     weight_sum = cfg.ink_weight + cfg.color_weight
-    gaze_ms = int(cfg.gaze_seconds * 1000)
-    anim_ms = total_ms - gaze_ms
-    remainder = anim_ms % weight_sum
-    if remainder:
-        anim_ms -= remainder
-        gaze_ms += remainder
-
-    ink_frames = round(anim_ms * cfg.ink_weight / weight_sum * cfg.fps / 1000)
-    color_frames = round(anim_ms * cfg.color_weight / weight_sum * cfg.fps / 1000)
-    gaze_frames = round(gaze_ms * cfg.fps / 1000)
-    if ink_frames <= 0 and color_frames <= 0:
-        ink_frames = color_frames = 0
+    ink_frames = round(drawing_frames * cfg.ink_weight / weight_sum)
+    color_frames = drawing_frames - ink_frames
     return PhasePlan(ink_frames, color_frames, gaze_frames, f"{cfg.ink_weight}:{cfg.color_weight}")
 
 
@@ -1000,611 +1039,38 @@ def plan_phases(total_ms: int, cfg: Config) -> PhasePlan:
 # 渲染器主体
 # ──────────────────────────────────────────────────────────────
 class StreamBoardRenderer:
-    """持有单次渲染的全部状态，方法挂在实例上。"""
+    """Standalone entry point sharing the annotated renderer's contour drawing."""
 
-    def __init__(
-        self,
-        image_bgr: np.ndarray,
-        cfg: Config,
-        hand_png: Path | None,
-        bare_tip: bool,
-    ) -> None:
+    def __init__(self, image_bgr, cfg, hand_png, bare_tip):
+        # Local import avoids the shared Config/primitive import cycle.
+        if __package__:
+            from .render_stream_whiteboard import RegionStreamRenderer
+        else:
+            from render_stream_whiteboard import RegionStreamRenderer
+
+        height, width = image_bgr.shape[:2]
+        annotation = {"canvas": {"width": width, "height": height}, "elements": []}
+        self.renderer = RegionStreamRenderer(image_bgr, annotation, cfg, hand_png, bare_tip)
         self.cfg = cfg
-        self.canvas_bgr = _hex_to_bgr(cfg.canvas_hex)
-
-        # 计算输出尺寸：长边限到 cap，并对齐到 grid_edge 的偶数倍（编码要求偶数）
-        h0, w0 = image_bgr.shape[:2]
-        scale = cfg.cap_long_edge / max(h0, w0)
-        w = int(round(w0 * scale))
-        h = int(round(h0 * scale))
-        align = cfg.grid_edge if cfg.grid_edge % 2 == 0 else cfg.grid_edge * 2
-        w = (w // align) * align
-        h = (h // align) * align
-        self.out_w = max(align, w)
-        self.out_h = max(align, h)
-
-        self.color_img = cv2.resize(image_bgr, (self.out_w, self.out_h), interpolation=cv2.INTER_AREA)
-        gray = cv2.cvtColor(self.color_img, cv2.COLOR_BGR2GRAY)
-        self.thresh_map = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 10
-        )
-        self.active = _active_mask(self.thresh_map, cfg.grid_edge, cfg.ink_threshold)
-        self.grid_blocks = _to_grid_blocks(self.thresh_map, cfg.grid_edge)
-        self.ink_pixels = self.thresh_map < cfg.ink_threshold
-        self.ink_paint = np.repeat(self.thresh_map[:, :, None], 3, axis=2).astype(np.float32)
-
-        # 把原图背景染成画布底色（仅影响 color_img，不碰 ink_pixels / ink_paint）。
-        # 这样上色/凝视阶段的背景与起笔(线稿)阶段一致，避免背景色突兀跳变。
-        # 放在 ink_pixels 算完之后，线稿质量完全不受影响。
-        if cfg.match_bg:
-            self._match_original_background()
-
-        # 格空间聚类（grid 模式的笔迹路径 + contour-wipe 阻力场仍需要）
-        self.ink_streams = cluster_ink_streams(self.active)
-
-        # 笔迹路径：按 ink_path_mode 选择 grid（格中心插值）或 skeleton（骨架追踪）
-        if cfg.ink_path_mode == "skeleton":
-            self.skeleton_strokes = self._build_skeleton_path()
-            if self.skeleton_strokes:
-                self.stroke_path = [pt for stroke in self.skeleton_strokes for pt in stroke]
-            else:
-                # 骨架追踪无笔画：真正退回格中心路径，而非留一条空 path
-                self.stroke_path = flatten_streams(self.ink_streams)
-        else:
-            self.skeleton_strokes = []
-            self.stroke_path = flatten_streams(self.ink_streams)
-
-        # 画布（用浮点缓存，便于墨刷累加混合）
-        self.drawn = np.zeros((self.out_h, self.out_w, 3), dtype=np.float32)
-        self.drawn[...] = self.canvas_bgr.astype(np.float32)
-
-        # 笔尖覆盖
-        self.tip: TipOverlay | None = None
-        if not bare_tip:
-            hand_data = _load_hand(hand_png, cfg.target_hand_height) if hand_png else None
-            tip_anchor_x = cfg.tip_anchor_x
-            tip_anchor_y = cfg.tip_anchor_y
-            if hand_data is None:
-                hand_data = _procedural_tip(cfg.target_hand_height)
-                tip_anchor_x = 0.5
-                tip_anchor_y = 0.70
-            self.tip = TipOverlay(
-                hand_data[0], hand_data[1],
-                tip_anchor_x=tip_anchor_x,
-                tip_anchor_y=tip_anchor_y,
-            )
-
-    # ── 把原图背景染成画布底色（仅影响 color_img，不碰线稿墨迹）──
-    def _match_original_background(self) -> None:
-        """
-        采样原图四角作为背景色基准，把与其差异 < 阈值的像素替换为 canvas_hex。
-        使上色/凝视阶段的背景与起笔(线稿)阶段一致，避免背景色突兀跳变。
-        彩色内容（与背景差异大）保留原色不受影响。
-        """
-        img = self.color_img
-        h, w = img.shape[:2]
-        margin = max(3, min(h, w) // 50)
-        samples = [
-            img[:margin, :margin], img[:margin, -margin:],
-            img[-margin:, :margin], img[-margin:, -margin:],
-        ]
-        bg_color = np.median(np.concatenate([s.reshape(-1, 3) for s in samples]), axis=0)
-        diff = np.abs(img.astype(np.int16) - bg_color.astype(np.int16)).sum(axis=2)
-        bg_mask = diff < self.cfg.match_bg_threshold
-        img[bg_mask] = self.canvas_bgr
-
-    # ── 笔迹中心点（像素坐标）──
-    def _cell_center(self, cell: tuple[int, int]) -> tuple[int, int]:
-        r, c = cell
-        e = self.cfg.grid_edge
-        return (c * e + e // 2, r * e + e // 2)  # (x, y)
-
-    # ── 骨架级笔迹路径（Zhang-Suen 细化 + 8邻接最直边追踪）──
-    def _build_skeleton_path(self) -> list[list[tuple[int, int]]]:
-        """
-        用骨架追踪生成像素级有序笔画序列，替代网格格中心插值。
-        笔尖走真实骨架，比网格中心更贴合原图线条；
-        交叉点处沿最直边继续走，避免三角碎笔画。
-        """
-        cfg = self.cfg
-        skel = _zhang_suen_skeleton(self.ink_pixels, max_iterations=160)
-        raw_strokes = trace_8connected(skel, min_points=cfg.skeleton_min_points)
-        if not raw_strokes:
-            print("  [warn] 骨架追踪无笔画，回退到格中心路径")
-            return []
-
-        spacing = cfg.skeleton_resample_spacing
-        processed: list[list[tuple[int, int]]] = []
-        for stroke in raw_strokes:
-            pts = [(float(x), float(y)) for x, y in stroke]
-            pts = _resample_stroke_points(pts, spacing)
-            pts = _chaikin_smooth(pts, iterations=1)
-            pts = _resample_stroke_points(pts, spacing)
-            if len(pts) >= 2 and _stroke_cumulative_length(pts)[-1] > 2.0:
-                processed.append([(int(round(x)), int(round(y))) for x, y in pts])
-
-        processed = _order_skeleton_strokes(processed)
-        total_pts = sum(len(s) for s in processed)
-        print(f"  骨架追踪: {len(processed)} 条笔画, {total_pts} 个采样点")
-        return processed
-
-    # ── contour-wipe 阻力场（懒构建，整个上色阶段复用）──
-    def _build_resistance_field(self) -> np.ndarray:
-        """
-        用线稿墨迹构建"阻力场"：轮廓处阻力≈1，向下方逐行按 decay 指数衰减。
-        揭示前沿遇高阻力被扣减像素数，从而"先卡在轮廓上、再缓慢越过"。
-
-        阻力场全程静态，与上色进度无关，故只算一次缓存到 self._resistance。
-        """
-        if getattr(self, "_resistance", None) is not None:
-            return self._resistance
-
-        h, w = self.out_h, self.out_w
-        cfg = self.cfg
-
-        # 1) 墨线二值图（uint8 0/255）
-        ink_u8 = (self.ink_pixels.astype(np.uint8)) * 255
-
-        # 2) 膨胀：圆形结构元让轮廓变粗、形成阻挡带
-        spread = int(np.clip(min(w, h) // 64, 3, 17))
-        if spread % 2 == 0:  # 结构元半径需为正奇数
-            spread = max(3, spread - 1)
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (spread, spread))
-        dilated = cv2.dilate(ink_u8, kernel, iterations=1)
-
-        # 3) 高斯模糊：把硬边变成渐变带（半径需为正奇数）
-        blur_r = max(1, int(round(min(w, h) / 220.0)))
-        if blur_r % 2 == 0:
-            blur_r += 1
-        resistance = cv2.GaussianBlur(dilated, (blur_r, blur_r), 0).astype(np.float32)
-
-        # 4) 归一化到 [0,1]
-        peak = float(resistance.max())
-        if peak > 1e-6:
-            resistance /= peak
-        else:
-            # 无墨线（全白图）：阻力场恒 0，contour-wipe 退化为平直扫描
-            resistance = np.zeros((h, w), dtype=np.float32)
-
-        # 5) 逐行向下因果传播 decay：让每条轮廓向下方投出指数衰减阴影
-        decay = cfg.wipe_decay
-        for row in range(1, h):
-            resistance[row] = np.maximum(resistance[row], resistance[row - 1] * decay)
-
-        self._resistance = resistance
-        return resistance
-
-    # ── 在落点铺一“墨点”：线稿阶段铺阈值图，添彩阶段铺原色 ──
-    def _reveal_ink_segment(
-        self, start: tuple[int, int], end: tuple[int, int]
-    ) -> None:
-        """Reveal only the original line-art pixels touched by one pen movement."""
-        segment = np.zeros((self.out_h, self.out_w), dtype=np.uint8)
-        thickness = max(1, self.cfg.ink_reveal_radius * 2 + 1)
-        cv2.line(segment, start, end, 255, thickness=thickness, lineType=cv2.LINE_AA)
-        revealed = (segment > 0) & self.ink_pixels
-        self.drawn[revealed] = self.ink_paint[revealed]
-
-    def _ink_stamp(self, cell: tuple[int, int]) -> None:
-        r, c = cell
-        e = self.cfg.grid_edge
-        block = self.grid_blocks[r, c]
-        ink_region = block < self.cfg.ink_threshold
-        # 阈值图是单通道，复制到三通道画布
-        paint = np.repeat(block[:, :, None], 3, axis=2)
-        target = self.drawn[r * e:r * e + e, c * e:c * e + e]
-        target[ink_region] = paint[ink_region]
-
-    def _color_stamp(self, px: int, py: int, disk: np.ndarray) -> None:
-        radius = self.cfg.brush_radius
-        h, w = self.out_h, self.out_w
-        y0, y1 = max(0, py - radius), min(h, py + radius + 1)
-        x0, x1 = max(0, px - radius), min(w, px + radius + 1)
-        if y1 <= y0 or x1 <= x0:
-            return
-        by0, by1 = y0 - (py - radius), disk.shape[0] - ((py + radius + 1) - y1)
-        bx0, bx1 = x0 - (px - radius), disk.shape[1] - ((px + radius + 1) - x1)
-        m = disk[by0:by1, bx0:bx1]
-        inv = 1.0 - m
-        target = self.drawn[y0:y1, x0:x1]
-        source = self.color_img[y0:y1, x0:x1].astype(np.float32)
-        for ch in range(3):
-            target[:, :, ch] = target[:, :, ch] * inv + source[:, :, ch] * m
-
-    # ── 把当前画布快照（含笔尖）写若干帧 ──
-    def _snapshot_with_tip(self, px: int, py: int) -> np.ndarray:
-        snap = self.drawn.astype(np.uint8)  # astype 已返回新数组，无需再 copy
-        if self.tip is not None:
-            self.tip.stamp(snap, px, py)
-        return snap
-
-    def _build_stroke_samples(
-        self, path: list[tuple[int, int]]
-    ) -> tuple[list[tuple[int, int]], set[int], list[int]]:
-        """
-        把笔迹折线插值成连续的笔尖像素坐标序列。
-        相邻格中心之间按 sample_step 像素均匀采样，形成连贯的滑动轨迹。
-
-        返回 (samples, pen_lifts, sample_cell_index)：
-          samples         —— 笔尖像素坐标列表
-          pen_lifts       —— “抬笔”采样点索引集合（非相邻格切换处）
-          sample_cell_index —— 每个采样点归属的 cell 在 path 中的索引，
-                              用于让“揭墨进度”与“笔尖位置”严格同步。
-        """
-        samples: list[tuple[int, int]] = []
-        pen_lifts: set[int] = set()
-        sample_cell_index: list[int] = []
-        for idx, cell in enumerate(path):
-            cx, cy = self._cell_center(cell)
-            if idx == 0:
-                samples.append((cx, cy))
-                sample_cell_index.append(idx)
-                continue
-            prev_cell = path[idx - 1]
-            prev = self._cell_center(prev_cell)
-            cell_distance = math.hypot(cell[0] - prev_cell[0], cell[1] - prev_cell[1])
-            if cell_distance > math.sqrt(2):
-                pen_lifts.add(len(samples))
-                samples.append((cx, cy))
-                sample_cell_index.append(idx)
-                continue
-            steps = max(
-                1, int(math.hypot(cx - prev[0], cy - prev[1]) / self.cfg.sample_step)
-            )
-            for s in range(1, steps + 1):
-                samples.append(
-                    (int(prev[0] + (cx - prev[0]) * s / steps),
-                     int(prev[1] + (cy - prev[1]) * s / steps))
-                )
-                sample_cell_index.append(idx)
-        return samples, pen_lifts, sample_cell_index
-
-    def _frame_progress_indices(self, n_steps: int, target_frames: int) -> list[int]:
-        """
-        给定 n_steps 个笔尖位置和 target_frames 个目标帧，
-        返回每个目标帧应取的笔尖位置索引（均匀映射，覆盖完整轨迹）。
-        target_frames <= n_steps 时是下采样，> 时是重复采样。
-        target_frames <= 0（如总时长≤凝视段导致本段无帧）时返回空，不产生任何帧。
-        """
-        if n_steps == 0 or target_frames <= 0:
-            return []
-        if target_frames == 1:
-            return [n_steps - 1]
-        return [
-            round(f * (n_steps - 1) / (target_frames - 1))
-            for f in range(target_frames)
-        ]
-
-    def _pause_frame_indices(
-        self, target_frames: int, n_cells: int
-    ) -> set[int]:
-        """
-        自适应停顿：按内容密度分档决定停顿比例，再把停顿帧均匀分布在时间轴上。
-        返回"需要冻结（重复上一帧进度）"的帧索引集合。
-
-        分档指标用"每格帧数" frames_per_cell = target_frames / n_cells：
-        帧比格多得多（值大）说明动画时长相对内容有富余 → 多停顿模拟换笔呼吸；
-        帧比格少（值小）说明内容密集、时长紧张 → 不停顿。
-
-        pause_mode 可强制覆盖："off" 关闭、"light"/"heavy" 固定档、"auto" 自动。
-        """
-        mode = self.cfg.pause_mode
-        if mode == "off" or target_frames < 8 or n_cells <= 0:
-            return set()
-
-        if mode == "light":
-            ratio = self.cfg.pause_ratio_light
-        elif mode == "heavy":
-            ratio = self.cfg.pause_ratio_heavy
-        else:  # auto：按"每格帧数"自动分档
-            fpc = target_frames / n_cells
-            if fpc >= self.cfg.pause_heavy_fpc:
-                ratio = self.cfg.pause_ratio_heavy
-            elif fpc >= self.cfg.pause_light_fpc:
-                ratio = self.cfg.pause_ratio_light
-            else:
-                return set()  # 内容密集：快节奏，不停顿
-
-        # 停顿帧数量，至少为 0；夹到 target_frames-2 避免首尾帧停顿
-        pause_count = min(
-            max(0, int(round(target_frames * ratio))),
-            max(0, target_frames - 2),
-        )
-        if pause_count <= 0:
-            return set()
-
-        # 等分插入：把 target_frames 分成 pause_count+1 等份，停顿落在内部分点上
-        # 不用首尾(1/(n+1) 的分子从 1 起)，保证开头结尾不打断
-        return {
-            max(1, min(target_frames - 2,
-                       round((idx + 1) * target_frames / (pause_count + 1))))
-            for idx in range(pause_count)
-        }
-
-    # ── 起笔段：沿 stroke_path 铺线稿，笔尖滑动且与揭墨严格同步 ──
-    def lay_down_ink(self, writer: cv2.VideoWriter, target_frames: int) -> None:
-        """起笔段入口：按 ink_path_mode 分发到骨架追踪或网格格路径。"""
-        if self.cfg.ink_path_mode == "skeleton" and self.skeleton_strokes:
-            return self._lay_down_ink_skeleton(writer, target_frames)
-        return self._lay_down_ink_grid(writer, target_frames)
-
-    # ── grid 模式：沿网格格中心插值路径揭墨（原逻辑）──
-    def _lay_down_ink_grid(self, writer: cv2.VideoWriter, target_frames: int) -> None:
-        path = self.stroke_path
-        n = len(path)
-        if n == 0:
-            print("  无墨迹，跳过起笔段")
-            for _ in range(target_frames):
-                writer.write(self._snapshot_with_tip(self.out_w // 2, self.out_h // 2))
-            return
-
-        samples, pen_lifts, sample_cell_index = self._build_stroke_samples(path)
-        sample_idx_for_frame = self._frame_progress_indices(len(samples), target_frames)
-
-        # 自适应停顿：按密度分档选出"冻结帧"（笔尖不动、揭墨不推进），
-        # 模拟真人书写时的换笔/呼吸节奏。
-        pause_frames = self._pause_frame_indices(target_frames, n)
-        if pause_frames:
-            print(f"  自适应停顿: {len(pause_frames)} 帧冻结 (模式={self.cfg.pause_mode})")
-
-        written = 0
-        cells_revealed = 0  # 已整块揭示的格数（增量，严格跟随笔尖进度）
-        last_sample_idx: int | None = None
-        for fi, si in enumerate(sample_idx_for_frame):
-            # 停顿帧：复用上一帧的笔尖位置与进度，不揭墨，只写一帧快照（笔尖冻结）
-            if fi in pause_frames and last_sample_idx is not None:
-                sx, sy = samples[last_sample_idx]
-                writer.write(self._snapshot_with_tip(sx, sy))
-                written += 1
-                if (fi + 1) % max(1, target_frames // 10) == 0:
-                    print(f"  起笔进度: {int((fi + 1) / target_frames * 100)}%")
-                continue
-
-            # 笔尖沿线揭示（保留笔迹流动感）
-            if last_sample_idx is None:
-                self._reveal_ink_segment(samples[si], samples[si])
-            else:
-                for sample_idx in range(last_sample_idx + 1, si + 1):
-                    if sample_idx in pen_lifts:
-                        continue
-                    self._reveal_ink_segment(
-                        samples[sample_idx - 1], samples[sample_idx]
-                    )
-
-            # 整块揭示：严格揭到"当前笔尖所在 cell"，保证笔尖与画同步、文字完整。
-            # sample_cell_index[si] 是当前帧笔尖归属的格索引，揭到它为止。
-            target_cell = sample_cell_index[si]
-            while cells_revealed <= target_cell and cells_revealed < n:
-                self._ink_stamp(path[cells_revealed])
-                cells_revealed += 1
-
-            sx, sy = samples[si]
-            writer.write(self._snapshot_with_tip(sx, sy))
-            written += 1
-            last_sample_idx = si
-            if (fi + 1) % max(1, target_frames // 10) == 0:
-                print(f"  起笔进度: {int((fi + 1) / target_frames * 100)}%")
-
-        # 收尾兜底：确保所有格墨迹揭示完整，并补齐帧数
-        while cells_revealed < n:
-            self._ink_stamp(path[cells_revealed])
-            cells_revealed += 1
-        last = samples[-1]
-        while written < target_frames:
-            writer.write(self._snapshot_with_tip(*last))
-            written += 1
-        print(f"  起笔完成: {n} 格, {written} 帧")
-
-    # ── skeleton 模式：沿骨架像素路径揭墨（笔尖走真实骨架）──
-    def _lay_down_ink_skeleton(self, writer: cv2.VideoWriter, target_frames: int) -> None:
-        """
-        骨架模式起笔：笔尖沿骨架像素点滑动，用 _reveal_ink_segment 揭原图墨迹。
-        不做整块揭示（_ink_stamp），因为骨架已精确到像素，无需保证格完整。
-        跨笔画处标记抬笔（pen_lifts），跳过插值。
-        """
-        strokes = self.skeleton_strokes
-        if not strokes:
-            return self._lay_down_ink_grid(writer, target_frames)
-
-        # 把多条笔画展平成连续采样点序列，跨笔画处标记抬笔
-        samples: list[tuple[int, int]] = []
-        pen_lifts: set[int] = set()
-        for si, stroke in enumerate(strokes):
-            if si > 0:
-                pen_lifts.add(len(samples))  # 笔画间抬笔
-            samples.extend(stroke)
-
-        n = len(samples)
-        if n == 0:
-            print("  无骨架笔画，跳过起笔段")
-            for _ in range(target_frames):
-                writer.write(self._snapshot_with_tip(self.out_w // 2, self.out_h // 2))
-            return
-
-        sample_idx_for_frame = self._frame_progress_indices(n, target_frames)
-
-        # 自适应停顿（用笔画数而非格数做密度判定）
-        pause_frames = self._pause_frame_indices(target_frames, len(strokes))
-        if pause_frames:
-            print(f"  自适应停顿: {len(pause_frames)} 帧冻结 (模式={self.cfg.pause_mode})")
-
-        written = 0
-        last_sample_idx: int | None = None
-        report_step = max(1, target_frames // 10)
-        for fi, si in enumerate(sample_idx_for_frame):
-            # 停顿帧：笔尖冻结
-            if fi in pause_frames and last_sample_idx is not None:
-                sx, sy = samples[last_sample_idx]
-                writer.write(self._snapshot_with_tip(sx, sy))
-                written += 1
-                if (fi + 1) % report_step == 0:
-                    print(f"  起笔进度: {int((fi + 1) / target_frames * 100)}%")
-                continue
-
-            # 沿骨架揭墨：从上一帧采样点到当前帧采样点，逐段揭示原图墨迹
-            if last_sample_idx is None:
-                self._reveal_ink_segment(samples[si], samples[si])
-            else:
-                for idx in range(last_sample_idx + 1, si + 1):
-                    if idx in pen_lifts:
-                        continue
-                    self._reveal_ink_segment(samples[idx - 1], samples[idx])
-
-            sx, sy = samples[si]
-            writer.write(self._snapshot_with_tip(sx, sy))
-            written += 1
-            last_sample_idx = si
-            if (fi + 1) % report_step == 0:
-                print(f"  起笔进度: {int((fi + 1) / target_frames * 100)}%")
-
-        # 收尾兜底：补齐帧数
-        last = samples[-1]
-        while written < target_frames:
-            writer.write(self._snapshot_with_tip(*last))
-            written += 1
-        print(f"  起笔完成(骨架): {n} 采样点, {written} 帧")
-
-    # ── 添彩段入口：按 color_fill 分发到对应风格 ──
-    def wash_color(self, writer: cv2.VideoWriter, target_frames: int) -> None:
-        if self.cfg.color_fill == "contour-wipe":
-            return self.wash_color_contour(writer, target_frames)
-        return self.wash_color_brush(writer, target_frames)
-
-    # ── brush：沿笔画轨迹，用圆形墨刷铺原色（默认风格）──
-    def wash_color_brush(self, writer: cv2.VideoWriter, target_frames: int) -> None:
-        path = self.stroke_path
-        n = len(path)
-        disk = _feathered_disk(self.cfg.brush_radius)
-        if n == 0:
-            print("  无墨迹，跳过添彩段")
-            gaze = self.color_img
-            for _ in range(target_frames):
-                writer.write(gaze)
-            return
-
-        centers = [self._cell_center(cell) for cell in path]
-        cell_idx_for_frame = self._frame_progress_indices(n, target_frames)
-
-        written = 0
-        last_cell_idx: int | None = None
-        for fi, ci in enumerate(cell_idx_for_frame):
-            # 按当前帧进度上色：从上一帧的格补刷到当前格，
-            # 把下采样可能跳过的中间格一并刷上，保证原色连续。
-            if last_cell_idx is None:
-                self._color_stamp(*centers[ci], disk)
-            else:
-                for cell_idx in range(last_cell_idx + 1, ci + 1):
-                    self._color_stamp(*centers[cell_idx], disk)
-
-            cx, cy = centers[ci]
-            writer.write(self._snapshot_with_tip(cx, cy))
-            written += 1
-            last_cell_idx = ci
-            if (fi + 1) % max(1, target_frames // 10) == 0:
-                print(f"  添彩进度: {int((fi + 1) / target_frames * 100)}%")
-
-        # 收尾兜底
-        last = centers[-1]
-        while written < target_frames:
-            writer.write(self._snapshot_with_tip(*last))
-            written += 1
-        print(f"  添彩完成: {n} 格, {written} 帧")
-
-    # ── contour-wipe：轮廓感知自上而下扫描上色 ──
-    def wash_color_contour(self, writer: cv2.VideoWriter, target_frames: int) -> None:
-        """
-        颜色不沿笔画轨迹刷，而是全局自上而下扫一道揭示前沿。
-        前沿遇轮廓先卡住（阻力≈1 扣减 delay_px），再随其下方衰减阴影缓慢越过，
-        形成"颜色沿着线蔓延"的观感。笔尖做横向来回扫动，模拟手在涂色。
-        """
-        cfg = self.cfg
-        h, w = self.out_h, self.out_w
-
-        if target_frames <= 0:
-            print("  无添彩帧，跳过 contour-wipe 段")
-            return
-
-        # 一次性预计算：阻力场、水波边界、扣减像素数、行坐标网格
-        resistance = self._build_resistance_field()
-        wave = _build_wipe_wave(w)
-        delay_px = int(np.clip(h * cfg.wipe_delay_ratio, 12, 52))
-        blocks = max(1, cfg.wipe_blocks)
-        ys = np.arange(h, dtype=np.float32)[:, None]   # (H,1)，逐帧复用
-
-        # 把 self.drawn 复位为"线稿已绘完"的状态（brush 在 lay_down_ink 后接续，此处同样接续）
-        # color_img 是揭示目标
-        color_src = self.color_img.astype(np.float32)
-
-        print(f"  contour-wipe: {w}x{h}, delay_px={delay_px}, 趟数={blocks}")
-
-        written = 0
-        # 揭示前沿从 -delay_px 扫到 h+delay_px，全程覆盖
-        sweep = h + 2 * delay_px
-        report_step = max(1, target_frames // 10)
-
-        for fi in range(target_frames):
-            # 全局进度（带正弦缓动）：0 → 1
-            if target_frames == 1:
-                progress = 1.0
-            else:
-                progress = fi / (target_frames - 1)
-            lead = _ease_in_out_sine(progress) * sweep - delay_px
-
-            # 揭示掩码：y <= lead + wave[x] - resistance[y,x]*delay_px
-            threshold = lead + wave[None, :] - resistance * delay_px  # (H,W)
-            reveal = ys <= threshold                        # (H,W) bool
-
-            # 揭示原色到 drawn 缓存
-            self.drawn[reveal] = color_src[reveal]
-
-            # 笔尖横向扫动：blocks 趟来回，奇数趟反向
-            lane = (fi / blocks * 2.0) % 1.0               # 单趟归一化进度 0..1
-            lane = _ease_in_out_sine(lane)
-            forward = (int(fi // blocks) % 2 == 0)         # 偶数趟正向、奇数趟反向
-            cursor_x = int(lane * w) if forward else int((1.0 - lane) * w)
-            cursor_x = max(0, min(w - 1, cursor_x))
-
-            # 光标 y = 当前列已揭示像素的最底部行
-            col_revealed = np.where(reveal[:, cursor_x])[0]
-            cursor_y = int(col_revealed[-1]) if col_revealed.size > 0 else 0
-
-            writer.write(self._snapshot_with_tip(cursor_x, cursor_y))
-            written += 1
-            if (fi + 1) % report_step == 0:
-                print(f"  添彩进度(contour-wipe): {int((fi + 1) / target_frames * 100)}%")
-
-        # 收尾兜底：确保整图已揭示（最后一帧进度=1 时 lead≈h+delay_px，理论上全覆盖）
-        full_reveal = np.ones((h, w), dtype=bool)
-        self.drawn[full_reveal] = color_src[full_reveal]
-        last = self._snapshot_with_tip(w // 2, h - 1)
-        while written < target_frames:
-            writer.write(last)
-            written += 1
-        print(f"  contour-wipe 完成: {written} 帧")
-
-    def render_to(self, raw_path: Path, total_ms: int) -> Path:
-        cfg = self.cfg
-        plan = plan_phases(total_ms, cfg)
-        ink_cells = len(self.stroke_path)
-
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(str(raw_path), fourcc, cfg.fps, (self.out_w, self.out_h))
-
-        print(f"  墨流: {len(self.ink_streams)} 条, 墨迹格: {ink_cells}")
-        print(
-            f"  时长: {total_ms}ms -> 起笔 {plan.ink_frames}f / "
-            f"添彩 {plan.color_frames}f / 凝视 {plan.gaze_frames}f (权重 {plan.ratio_label})"
-        )
-
-        started = time.time()
-        self.lay_down_ink(writer, plan.ink_frames)
-        self.wash_color(writer, plan.color_frames)
-        # 凝视：完整原图
-        gaze_img = self.color_img
-        for _ in range(plan.gaze_frames):
-            writer.write(gaze_img)
-        writer.release()
-        print(f"  渲染耗时: {time.time() - started:.1f}s")
+        self.out_w, self.out_h = self.renderer.out_w, self.renderer.out_h
+
+    def render_to(self, raw_path: Path, total_ms: int, *, writer=None) -> Path:
+        renderer = self.renderer
+        plan = plan_phases(total_ms, self.cfg)
+        if writer is None:
+            writer = cv2.VideoWriter(str(raw_path), cv2.VideoWriter_fourcc(*"mp4v"),
+                                     self.cfg.fps, (self.out_w, self.out_h))
+        if not writer.isOpened():
+            raise RuntimeError("无法打开视频写入器")
+        try:
+            allowed = np.ones((self.out_h, self.out_w), dtype=bool)
+            strokes = renderer._region_skeleton_strokes(allowed)
+            renderer._lay_ink_strokes(writer, plan.ink_frames, strokes, allowed)
+            renderer._wash_subject(writer, plan.color_frames, allowed)
+            for _ in range(plan.gaze_frames):
+                writer.write(renderer._snapshot())
+        finally:
+            writer.release()
         return raw_path
 
 
@@ -1700,41 +1166,43 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p.add_argument("--total-ms", type=int, default=10000, help="视频总时长，单位毫秒 (默认: 10000)")
     p.add_argument("--bare-tip", action="store_true", help="不叠加笔尖/手部覆盖")
     p.add_argument(
-        "--pen-image", default=str(DEFAULT_HAND_PNG),
-        help="自定义笔尖/手部素材路径 (默认: skill 内置 drawing-hand.png)",
+        "--pen-image", default=None,
+        help="自定义笔尖/手部素材路径（优先于内置画笔素材）",
     )
+    p.add_argument("--pen-type", default="marker", choices=["marker", "fountain"], help="画笔：马克笔或钢笔")
     p.add_argument("--fps", type=int, default=None, help="覆盖默认帧率")
     p.add_argument("--grid-edge", type=int, default=None, help="覆盖默认网格边长")
     p.add_argument("--brush-radius", type=int, default=None, help="覆盖默认墨刷半径")
     p.add_argument(
-        "--color-fill", default="contour-wipe", choices=["brush", "contour-wipe"],
-        help="添彩阶段上色风格: contour-wipe 轮廓感知自上而下扫描 (默认); brush 沿笔画轨迹刷",
+        "--color-fill", default="paint", choices=["contour", "paint", "brush", "contour-wipe"],
+        help="沿用现有画笔左右往返、由上向下沿笔尖路径连续落色；旧参数统一使用此画法",
     )
     p.add_argument(
         "--wipe-decay", type=float, default=None,
-        help="contour-wipe: 阻力场逐行向下衰减系数 (默认 0.86，越小越快越过轮廓)",
+        help="旧阻力场参数，直接填色不使用",
     )
     p.add_argument(
         "--wipe-delay-ratio", type=float, default=None,
-        help="contour-wipe: 轮廓处前沿扣减比例×h (默认 0.04，越大轮廓处停留越久)",
+        help="旧扫描前沿参数，直接填色不使用",
     )
     p.add_argument(
         "--wipe-blocks", type=int, default=None,
-        help="contour-wipe: 笔尖横向来回扫动趟数 (默认 18)",
+        help="旧趟数参数，当前画笔往返路径按既有宽度规划",
     )
     p.add_argument(
         "--pause", default="heavy", choices=["auto", "off", "light", "heavy"],
         help="起笔段停顿节奏: heavy 明显(默认); auto 按密度自动分档; off 关闭; light 少量",
     )
     p.add_argument(
-        "--ink-path", default="grid", choices=["grid", "skeleton"],
-        help="起笔段笔迹路径: grid 网格格中心插值(默认); skeleton 骨架级像素追踪(更精准贴合线条)",
+        "--ink-path", default="skeleton", choices=["grid", "skeleton"],
+        help="沿轮廓骨架描线；旧 grid 参数统一使用轮廓描线",
     )
     return p.parse_args(argv)
 
 
 def _build_cfg(args: argparse.Namespace) -> Config:
     kw: dict = {}
+    kw["pen_type"] = args.pen_type
     if args.fps is not None:
         kw["fps"] = args.fps
     if args.grid_edge is not None:
@@ -1775,7 +1243,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     raw_path = out_dir / f"stream_{ts}.mp4"
     h264_path = out_dir / f"stream_{ts}_h264.mp4"
 
-    pen_png = Path(args.pen_image) if args.pen_image else None
+    pen_png = Path(args.pen_image) if args.pen_image else (
+        _ASSETS_DIR / "drawing-hand-fountain.png" if cfg.pen_type == "fountain" else DEFAULT_HAND_PNG)
     renderer = StreamBoardRenderer(image_bgr, cfg, pen_png, args.bare_tip)
     print(f"  输入: {args.image}")
     print(f"  输出尺寸: {renderer.out_w}x{renderer.out_h}, 帧率: {cfg.fps}")

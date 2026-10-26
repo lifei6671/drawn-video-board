@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 import subprocess
 import sys
@@ -9,6 +8,7 @@ import cv2
 import numpy as np
 
 from cs_board_video import media
+from cs_board_video.bridge import ROOT as UPSTREAM_ROOT
 from helpers import fixture, prepare_images, prepare_audio, prepare_plans
 from cs_board_video.upstream.scripts.stream_render import _load_hand, TipOverlay
 
@@ -47,14 +47,14 @@ class HandAssetTests(unittest.TestCase):
                 np.testing.assert_allclose(canvas[position, position], expected, atol=1)
 
 
-class UpstreamParityTests(unittest.TestCase):
-    @unittest.skipUnless(os.environ.get("CS_BOARD_SOURCE"), "设置 CS_BOARD_SOURCE 才能比较上游实际输出")
-    def test_native_frames_match_upstream(self):
+class DrawingEntryParityTests(unittest.TestCase):
+    def test_native_frames_match_migrated_cli(self):
         with tempfile.TemporaryDirectory() as base:
             p = prepare_plans(prepare_audio(prepare_images(fixture(base))))
             # Upstream's CLI has a fixed default canvas; compare like for like.
             p.data["config"]["canvas_hex"] = "#F6F1E3"
-            source = Path(os.environ["CS_BOARD_SOURCE"])
+            # Both maintained entry points must use the same contour-only drawing.
+            source = UPSTREAM_ROOT
             image = p.path("scenes/scene-001/image.png")
             annotation_path = p.path("scenes/scene-001/annotation.json")
             upstream = p.path("render/cache/upstream.mp4")

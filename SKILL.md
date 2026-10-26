@@ -32,6 +32,11 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
 1. **拆分分镜。** 保留原文，完整覆盖；按 [storyboard.md](references/storyboard.md)
    创建 `narration/storyboard.json`，运行 `storyboard validate`，展示整张分镜表。
    可用 storyboard request/adapt 获取原提示词并交回 Codex 候选，沿用原 make_plan 归一。
+   根据文案语义选择是否使用 A/B-roll：A 镜负责主叙事，B 镜补充物品、动作、环境、证据或图解。
+   不机械交替，不为每句添加 B 镜；短辅助镜头可直接展示完成图，也可全屏手绘或画中画。
+   使用可选 `roll` 字段并说明文案关联理由；返回 A 镜复用其完成状态，不重复生图和绘制。
+   使用 A/B 的 request/adapt 候选逐镜提供原文 `text`，可按语义细分原固定分幕；普通分镜保持原流程。
+   分镜表展示 A/B、展示方式、关联镜号和理由，协议见 [storyboard.md](references/storyboard.md)。
    仅在关键镜头设计可选 `visual_text`（关键词、关联句、内心话）；普通镜头留空，不逐镜堆字。
    文字与口播不必相同，但须说明关联依据。特别关键的概念可用 `visual_mode=text_only`。
    需要气泡、圈线、纸张或分层物件时，先查看 [materials.md](references/materials.md) 和 materials list；
@@ -50,6 +55,7 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
    将用户选择记录为 `image_mode` 批准。未选择不得生成图片。
 4. **准备并验收图片。** 按 [image-assets.md](references/image-assets.md) 用 images prompts 生成原每镜中文提示词，
    使用可用生图工具或交给用户手动生成。主图统一为 `scenes/scene-NNN/image.png`。
+   `roll.mode=return` 的镜头复用 `a_scene` 原图与已完成图层，不另行生图或验收重复图片。
    使用图像工具时遵循当前可用工具的生图规范；保存实际提示词、生成来源与元数据。
    实际查看每张图，记录内容匹配、角色一致性、画风一致性、可绘制性的证据，
    再运行 `images review` 和 `images validate`。失败时逐镜反馈，保留已通过的资源。
@@ -57,7 +63,8 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
    无需重新批准。未提供音频则配置实际本地 VoiceStudio 或本地模型后 `audio synthesize`。
    新配音必须实际试听和原文比对，执行 `audio verify`，向用户提供试听文件，
    等待确认后记录 `audio` 批准。不得把技术探针当作听觉验收。
-6. **制作真实绘制预览。** `timeline build` 使用原时长/字幕函数，`annotation build` 使用原标注生成器。
+6. **制作真实绘制预览。所有白板画风统一沿真实轮廓连续描线、沿用现有画笔左右往返、从上向下连续落色；颜色仅沿笔尖经过的圆头线段出现，抬笔移动不着色，禁止整行批量揭色、晕染、网格落块和末帧整块补齐。** `timeline build` 使用原时长/字幕函数，`annotation build` 使用原标注生成器。
+   - 画笔默认马克笔；按用户要求用 `pen set --project ... --type fountain` 选择钢笔，用 `--type marker` 切回。钢笔按 sweety-handdraw-video 方法：生图时就准备真实细钢笔线稿，保留连续长轮廓与克制平涂，再整笔起收、转弯降速和抬笔。不能用旧粗马克笔画或照片换个手部图冒充钢笔画，禁止阈值重描、修补原画来假造笔迹；窗口不足时简化线稿，不跳笔补齐。预览和正式渲染共用选择，自定义预设保留画笔类型。切换后沿用原画风及预览审核流程，详见 [绘制画笔](references/pens.md)。
    实际看图检查，必要时按 [annotation.md](references/annotation.md) 用 drawing-plan.json 或原编辑台修正。
    原普通白板没有词级对齐时，字幕仍是估计，须审核节奏；精确镜头对齐可导入 audio/alignment.json。
    Remotion 项目先用 storyboard --narrative-only 审叙事，配音后 audio align，再 deck request/adapt
@@ -94,3 +101,5 @@ Linux/macOS 的解释器为 `.venv/bin/python`。FFmpeg 和 ffprobe 需在 PATH�
 但输出仅使用经过检查的项目内相对路径，拒绝绝对路径、`..` 和越界符号链接。
 原文保留原始字节；导入/替换素材按内容摘要保留原件，不覆盖唯一原件。
 `content/` 默认不进入 Git，不自动提交、推送或发布。
+
+后续所有存在前后遮挡的镜头，必须在分镜和素材准备阶段按实际深度规划任意数量的图层；每层完整描线并填色后才进入下一层。背景底图补齐被遮挡内容，前景使用对齐完整画布的透明 PNG，配置 layers/layer_id。不得让未填色前景变成白色剪影、让背景留下前景空洞，或把一层未完成的填色留到其他层之后。具体协议见 references/annotation.md。

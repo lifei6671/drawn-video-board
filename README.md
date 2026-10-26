@@ -2,7 +2,7 @@
 
 基于原 CS Board 整体迁移的 Codex Skill。源版本
 `f7780ef08cc2c752806e49805f5f696bfcd020de` 的 133 个 Git 跟踪文件保留在
-`cs_board_video/upstream/`，内部结构不变。算法只有这一份；项目 CLI 直接调用原模块。
+`cs_board_video/upstream/`，内部结构保留。绘制算法统一由轮廓渲染器承担；项目 CLI 和原独立入口共用它。旧网格落块、整块擦除与整图末帧补齐已移除。
 
 先看 [功能与模块对应表](references/migration-map.md)；逐文件来源和迁入摘要见
 [upstream-manifest.json](references/upstream-manifest.json)。原许可证和原使用说明均保留。
@@ -44,3 +44,11 @@ $env:CS_BOARD_REMOTION_TEST='1' # 已安装上述原 Node 依赖/浏览器时
 关键镜头支持独立文字层：从 `references/fonts` 选字体，先生成样图让用户确认，再进入分镜批准。支持直接文字、十种气泡和纯文字页，普通镜头无需加字。详见 [文字与气泡](references/typography.md)。新增“复古纸质人物拼贴风”和“纸框分层拼贴风”；后者提供静态层次，独立视差运动另需分层素材。
 
 内置 [51项可复用素材库](references/materials.md)：包含10种气泡、5种强调标记、5种纸张边框、5种基础分层物件，以及纸框分层拼贴风的6种日常用品、6种中外通用人物、10种动物和4种场景。`materials list` 查看预览，`materials export` 按尺寸和朝向导出透明PNG到项目；矢量素材另支持改色和SVG，不自动绑定人物角色。
+
+白板绘制统一先沿真实轮廓连续描线，再沿用现有画笔左右往返、从上向下连续落色。颜色只出现在笔尖扫过的圆头线段内，抬笔移动不着色，不按整行或色块批量揭示。适用于所有画风及旧矩形标注；旧 grid/paint/brush/contour-wipe 参数仍可读取，统一执行此画法。算法更新会自动使旧路径与视频缓存失效，需要重新生成预览。详见 [绘制标注](references/annotation.md)。
+
+画笔支持马克笔（默认）和钢笔。用 `pen list` 查看素材，`pen set --project content/demo --type fountain` 切换钢笔，`--type marker` 切回马克笔。钢笔参考 sweety-handdraw-video：准备真实细线原画，沿完整笔画压力起收、转弯降速与抬笔移动，保留原图墨线。预览和正式渲染共用选择。详见[绘制画笔](references/pens.md)。
+
+分镜可按文案选择 A/B-roll：A 主叙事、B 全屏辅助镜头或画中画，以及返回已完成的 A 画面。辅助镜头可手绘进入或直接展示；普通分镜无需配置。原文、音频对齐和预览审核保持不变，详见[分镜协议](references/storyboard.md)。
+
+存在遮挡的场景支持任意层数的独立 PNG 图层，按实际前后关系逐层完成描线和填色，未填色前景透出已完成的下层，支持半透明和开口。图层类型不限定人物或植物，详见 [分层绘制](references/annotation.md)。

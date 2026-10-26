@@ -1,0 +1,34 @@
+{
+  "source_root": "D:\\wx_lifeilin\\github.com\\lifei6671\\science-motion\\.agents\\skills\\sweety-handdraw-video",
+  "license": "MIT",
+  "files": [
+    {
+      "source": "scripts/stroke_paths.py",
+      "source_sha256": "56b2d2b018a959a9efa7c1e16c078279cc927a23c10927d2a3c101c207f96323",
+      "adapted": "cs_board_video/upstream/scripts/sweety_stroke_paths.py",
+      "adapted_sha256": "d736b72d4e7746502fc1f8182c43e3e21ac27dcffada106b18bc62001b199248",
+      "adaptation": "MIT header and local import prefix only"
+    },
+    {
+      "source": "scripts/line_topology.py",
+      "source_sha256": "6dfd6842a6514fe53cd1fd09f7ad879bb159590481a527345524fa7f801df9a4",
+      "adapted": "cs_board_video/upstream/scripts/sweety_line_topology.py",
+      "adapted_sha256": "ddc92d8ae25f20d4eec176e400bb2b5bc8287edf911c3f16aad3295211045aff",
+      "adaptation": "MIT header and local import prefix only"
+    },
+    {
+      "source": "scripts/motion_profile.py",
+      "source_sha256": "8dfb26168f493e87aeb44975ea2cb8ed71fcba63772a4bfb1b503c485f926138",
+      "adapted": "cs_board_video/upstream/scripts/fountain_pen.py",
+      "adaptation": "Pure motion curves, pressure taper, direction and source-ink footprint adapted to existing renderer",
+      "adapted_sha256": "1a77eb93c070c45d29d65df5acbce9dbeb1c5b75feebec5025eaef72da749616"
+    },
+    {
+      "source": "scripts/line_drawing.py",
+      "source_sha256": "e968f2947b1535bb3af482dde5dad52336a47875a346b8ee5d31345f5119b7bd",
+      "adapted": "cs_board_video/upstream/scripts/fountain_pen.py",
+      "adaptation": "Pure motion curves, pressure taper, direction and source-ink footprint adapted to existing renderer",
+      "adapted_sha256": "1a77eb93c070c45d29d65df5acbce9dbeb1c5b75feebec5025eaef72da749616"
+    }
+  ]
+}

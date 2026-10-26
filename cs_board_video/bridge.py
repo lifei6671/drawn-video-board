@@ -19,7 +19,7 @@ ROOT = Path(__file__).parent / "upstream"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.render_stream_whiteboard import RegionStreamRenderer
+from scripts.render_stream_whiteboard import RegionStreamRenderer, layer_asset_paths, load_layer_images
 from scripts.stream_render import Config, _imread_any
 
 _scope_lock = threading.RLock()
@@ -116,7 +116,7 @@ def presets():
 
 def prompts(p):
     """Original style, composition and character prompts, without API generation."""
-    from . import workflow as w
+    from . import workflow as w, rolls
     w.mode_ready(p)
     generated = []
     infographic = p.data["config"].get("render_engine") == "remotion"
@@ -127,6 +127,12 @@ def prompts(p):
         refs, instruction, characters = module.custom_reference_context(p.root.name, require_characters=False)
         for index, (scene, native) in enumerate(zip(p.scenes(), native_scenes(p))):
             sid = scene["scene_id"]
+            if rolls.settings(scene)["mode"] == "return":
+                anchor = rolls.anchor(p,sid)
+                p.path(f"scenes/{sid}/prompt.md").write_text(f"返回 {anchor} 已完成画面，复用原图、图层和原文字；不重新生图或描线。",encoding="utf-8")
+                p.save(f"scenes/{sid}/prompt-context.json",{"roll":rolls.settings(scene),"reuse_scene":anchor,"generation_required":False})
+                generated.append(sid)
+                continue
             if infographic:
                 # Before narration is aligned, the approved narrative already names its subjects.
                 # Map that original standard-scene field to the original infographic prompt schema.
@@ -154,14 +160,25 @@ def prompts(p):
             panels = scene.get("upstream_panels") or [native]
             prompt = module.build_board_prompt(panels, style, reference_instruction, bool(characters),
                        p.data["config"].get("render_engine") == "remotion", aspect)
+            if p.data["config"].get("pen_type") == "fountain":
+                prompt += "\n本镜用钢笔逐笔绘制：原画须有细而流畅、连贯闭合的真实钢笔墨线，克制的起收笔，少量必要内部结构线，干净平涂；保持当前构图、人物和配色。不要粗马克笔描边、照片边缘提取、碎点、排线、纸纹和灰斑，不把照片套滤镜冒充线稿。画面不要出现绘制手或钢笔实物。"
             if scene.get("visual_mode") == "text_only":
                 prompt = "本镜为关键文字页，无需 AI 生图。使用 typography background 生成底图，已确认的文字和字体由本地排版渲染。"
             elif scene.get("visual_text"):
                 prompt += "\n本镜文字由本地字体准确排版，图片中不要生成文字或气泡。为以下归一化区域预留干净空间，避开人物脸部与关键物件：" + str([item["box"] for item in scene["visual_text"]])
+            if scene.get("roll"):
+                spec = rolls.settings(scene)
+                prompt += f"\n本镜为 {spec['type'].upper()}-roll，展示方式 {spec['mode']}，叙事依据：{spec['reason']}。"
+                if spec["type"] == "b":
+                    prompt += "聚焦这句文案涉及的细节、动作或证据，保持同一画风与角色；图片只画辅助镜头本身，不预先拼接主画面或画中画边框。"
             p.path(f"scenes/{sid}/prompt.md").write_text(prompt, encoding="utf-8")
             p.save(f"scenes/{sid}/prompt-context.json", {"upstream_function": "build_board_prompt",
-                   "style": style, "references": local_refs, "panels": panels,
+                   "style": style, "references": local_refs, "panels": panels, "pen_type": p.data["config"].get("pen_type", "marker"),
                    "visual_text": scene.get("visual_text", []), "visual_mode": scene.get("visual_mode", "illustration")})
+            if scene.get("roll"):
+                context = p.load(f"scenes/{sid}/prompt-context.json")
+                context["roll"] = rolls.settings(scene)
+                p.save(f"scenes/{sid}/prompt-context.json",context)
             generated.append(sid)
     return {"prompts": generated, "producer": "upstream.webapp.server.build_board_prompt"}
 
@@ -186,12 +203,29 @@ def plan(p, duration, candidate=None, *, narrative_only=False, deck_only=False):
         if candidate is None:
             request = module.plan_request(copy, duration, style, infographic=infographic, phrase_timeline=phrases)
             if not infographic:
+                from .rolls import PLANNING_PROMPT
+                if p.data["config"].get("render_engine", "whiteboard") == "whiteboard":
+                    request["prompt"] += PLANNING_PROMPT
                 request["prompt"] += "\n新增可选 visual_text 数组，只在关键镜头使用，普通镜头留空。内容可以是与口播相关的概念、关联句子、人物内心话，不必逐字复述；不得编造事实、数据或冒充真实引语。每项含 text、purpose（关联依据）、presentation（plain/speech-left/speech-right/thought/burst/caption/speech-soft/cloud-hand/shout/sticky-note/torn-note）、animation（characters逐字渐显，默认；fade整句及气泡淡入，不模拟笔画）、box（归一化x,y,w,h）、font_scale（高度比例）、start/duration（镜头时间比例，结束≤0.95）。特别关键的概念可用 visual_mode=text_only，其余 illustration。字体在分镜后通过 typography font 选择并生成样图请用户确认。key_text 仅为旧入口兼容，不能自动把每镜都变成文字镜头。"
             path = "render/deck-request.json" if deck_only else "narration/plan-request.json"
             p.save(path, request)
             return {"request": path, "producer": "upstream.plan_request", "infographic": infographic}
-        native = module.make_plan(module.DEFAULT_CONFIG, copy, duration, style,
-                    infographic=infographic, phrase_timeline=phrases, candidate_response=candidate)
+        authored_rolls = not infographic and isinstance(candidate,list) and any(
+            isinstance(item,dict) and "roll" in item for item in candidate)
+        if authored_rolls:
+            # A short insert may split an upstream fixed segment. Keep the authored
+            # original-text boundaries instead of merging away a B shot or cutback.
+            from .workflow import normalize
+            require(all(isinstance(item,dict) and isinstance(item.get("text"),str)
+                        and item["text"].strip() and isinstance(item.get("elements"),list)
+                        and item["elements"] and all(isinstance(e,str) and e for e in item["elements"])
+                        and item.get("title") for item in candidate), "A/B 分镜候选须逐镜提供原文 text、title 和 elements")
+            require(normalize("".join(item["text"] for item in candidate)) == normalize(copy), "A/B 分镜 text 必须按顺序完整覆盖原文")
+            native = deepcopy(candidate)
+            module.fit_scene_durations(native,duration)
+        else:
+            native = module.make_plan(module.DEFAULT_CONFIG, copy, duration, style,
+                        infographic=infographic, phrase_timeline=phrases, candidate_response=candidate)
     if deck_only:
         require(infographic, "deck 仅用于原 Remotion 分支")
         require(len(native) == len(p.scenes()), "PPT 页数改变了批准的分镜，需先修改并重新确认分镜")
@@ -214,6 +248,14 @@ def plan(p, duration, candidate=None, *, narrative_only=False, deck_only=False):
                 scene["visual_text"] = raw["visual_text"]
             if "visual_mode" in raw:
                 scene["visual_mode"] = raw["visual_mode"]
-    p.save("narration/storyboard.json", {"scenes": scenes})
+            if "roll" in raw:
+                scene["roll"] = raw["roll"]
     from .workflow import validate_storyboard
+    saved_scenes = p.scenes
+    p.scenes = lambda: scenes
+    try:
+        validate_storyboard(p)
+    finally:
+        p.scenes = saved_scenes
+    p.save("narration/storyboard.json", {"scenes": scenes})
     return validate_storyboard(p)

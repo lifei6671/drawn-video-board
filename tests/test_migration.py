@@ -20,6 +20,23 @@ from helpers import approve, fixture, prepare_audio, prepare_images
 
 REPO = Path(__file__).parents[1]
 
+# The requested contour-only renderer retires the grid/wipe implementations.
+# Preserve symbol retention checks for every other migrated implementation.
+RETIRED_DRAWING_SYMBOLS = {
+    "scripts/stream_render.py": {
+        "_build_resistance_field", "_build_skeleton_path", "_build_stroke_samples", "_cell_center",
+        "_color_stamp", "_frame_progress_indices", "_ink_stamp", "_lay_down_ink_grid",
+        "_lay_down_ink_skeleton", "_match_original_background", "_pause_frame_indices",
+        "_reveal_ink_segment", "_snapshot_with_tip", "lay_down_ink", "wash_color",
+        "wash_color_brush", "wash_color_contour",
+    },
+    "scripts/render_stream_whiteboard.py": {
+        "_cell_center", "_color_stamp", "_complete_region_color", "_grid_plan", "_ink_stamp_cell",
+        "_lay_ink_grid", "_paint_component_routes", "_paint_mask", "_region_grid_path",
+        "_wash_brush", "_wash_contour", "_wash_paint",
+    },
+}
+
 
 def invoke(p, *args):
     return dispatch(p, parser().parse_args([*args, "--project", str(p.root)]))
@@ -55,7 +72,7 @@ class MigrationTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
 
-    def test_complete_source_tree_and_all_original_symbols_retained(self):
+    def test_complete_source_tree_and_supported_original_symbols_retained(self):
         manifest = json.loads((REPO / "references/upstream-manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(len(manifest["files"]), 133)
         source = Path(os.environ.get("CS_BOARD_SOURCE", "D:/wx_lifeilin/github.com/cs-board"))
@@ -75,10 +92,11 @@ class MigrationTests(unittest.TestCase):
                         tree = ast.parse(path.read_text(encoding="utf-8-sig"))
                         return {(type(n).__name__, n.name) for n in ast.walk(tree)
                                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
-                    self.assertFalse(symbols(original) - symbols(migrated), item["path"])
+                    retired = {("FunctionDef", name) for name in RETIRED_DRAWING_SYMBOLS.get(item["path"], ())}
+                    self.assertFalse(symbols(original) - symbols(migrated) - retired, item["path"])
         self.assertEqual(modified, {"assets/drawing-hand-clean.png", "assets/drawing-hand.png",
                                   "scripts/stream_render.py", "webapp/server.py", "scripts/render_stream_whiteboard.py",
-                                  "scripts/merge_scenes.py", "video_renderer/align.mjs", "video_renderer/render.mjs"})
+                                  "scripts/merge_scenes.py", "video_renderer/align.mjs", "video_renderer/render.mjs", "SKILL.md"})
         self.assertFalse((REPO / "cs_board_video/engine/stream_render.py").exists())
 
     def test_original_presets_references_prompts_and_planning(self):

@@ -164,9 +164,9 @@ def initialize(content, name, script, config=None):
     source = Path(script)
     require(source.is_file() and source.read_text(encoding="utf-8-sig").strip(), "口播文案不能为空")
     settings = {"width": 1920, "height": 1080, "fps": 30, "ink_path": "skeleton",
-                "color_fill": "contour-wipe", "stroke_detail": 96, "bare_tip": False,
+                "color_fill": "paint", "stroke_detail": 96, "bare_tip": False,
                 "canvas_hex": "#F5EBD7", "crf": 20, "subtitles": True,
-                "render_engine": "whiteboard", "include_key_text": False, "pen_text": ""}
+                "render_engine": "whiteboard", "include_key_text": False, "pen_text": "", "pen_type": "marker"}
     if config:
         require(isinstance(config, dict) and not set(config) - set(settings), "配置包含未知字段")
         settings.update(config)
@@ -195,7 +195,8 @@ def validate_config(config):
                 "正式画幅宽高须为 10 的倍数且至少 100")
     require(type(config.get("fps")) is int and 1 <= config["fps"] <= 120, "fps 范围为 1..120")
     require(config.get("ink_path") in ("skeleton", "grid"), "未知笔迹模式")
-    require(config.get("color_fill") in ("contour-wipe", "brush", "paint"), "未知上色模式")
+    require(config.get("color_fill") in ("contour", "contour-wipe", "brush", "paint"), "未知上色模式")
+    require(config.get("pen_type", "marker") in ("marker", "fountain"), "未知画笔类型")
     require(type(config.get("stroke_detail")) is int and config["stroke_detail"] >= 0, "stroke_detail 必须为非负整数")
     require(type(config.get("crf")) is int and 0 <= config["crf"] <= 51, "CRF 范围为 0..51")
     require(all(type(config.get(x)) is bool for x in ("bare_tip", "subtitles")), "bare_tip/subtitles 必须为布尔值")
@@ -203,3 +204,4 @@ def validate_config(config):
     require(config.get("render_engine", "whiteboard") in ("whiteboard", "remotion"), "原渲染分支为 whiteboard/remotion")
     if config.get("render_engine") == "remotion":
         require(config["fps"] == 30, "原 Remotion 时间轴固定使用 30fps")
+        require(config.get("pen_type", "marker") == "marker", "钢笔选择用于白板绘制引擎")
