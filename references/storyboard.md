@@ -4,6 +4,8 @@
 
 手绘和拼贴都先设计画面如何表达观点，再准备素材。新分镜在每个 scene（拼贴为 beat）中填写 `visual_plan`；旧项目省略此字段仍可使用。`storyboard request/adapt` 会提示并保留它，素材提示词也会带上该计划。
 
+选择纸框分层拼贴风时，先读[纸框拼贴导演规则](paper-collage-directing.md)：按论点与关系划分连续场景，再把原文短语对应到场景内部的增量变化。不能把每句口播机械转换为一张新图。该规则的导演表是规划文档，不是额外的 JSON 字段或新审批阶段。
+
 ```json
 {
   "visual_plan": {
@@ -29,7 +31,8 @@
 
 关键镜头可增加独立的 `visual_text`，普通镜头不加字。支持直接排字、对话/思考气泡和纯文字概念页。
 文字可提炼口播含义，也可提供相关的行动句，须记录关联理由；不可编造事实或冒充真实引语。
-字段、字体选择及样图确认见 [typography.md](typography.md)。存在文字时，字体样图批准先于分镜批准。
+手绘模式的字段、字体选择及样图确认见 [typography.md](typography.md)，字体样图批准先于分镜批准。
+拼贴模式使用 [collage.md](collage.md) 的 `kind: text` 和本地字体，字体及文字布局纳入拼贴计划确认，不混用白板 `visual_text` 或另建 `typography` 批准阶段。
 
 用户原文原样保存 `narration/original.txt`。Agent 创作分镜，不用字符切分器替代叙事设计。
 将下列 JSON 保存到 `narration/storyboard.json` 或用 `storyboard import --file` 导入：
