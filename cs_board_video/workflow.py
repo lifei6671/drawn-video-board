@@ -15,7 +15,7 @@ def normalize(text):
 
 
 def validate_storyboard(p):
-    from . import typography
+    from . import typography, direction
     scenes = p.scenes()
     require(scenes and len(scenes) <= 999, "请先创建 narration/storyboard.json")
     fields = ("scene_id", "narration", "narrative_goal", "visual_description", "composition",
@@ -23,6 +23,7 @@ def validate_storyboard(p):
     for i, scene in enumerate(scenes, 1):
         require(isinstance(scene, dict) and all(scene.get(k) for k in fields), f"第 {i} 镜缺少必填字段")
         typography.validate_scene(scene, p.data["config"])
+        direction.validate(scene)
         require(scene["scene_id"] == f"scene-{i:03}", "镜头必须连续编号 scene-001 起")
         require(isinstance(scene["narration"], str) and isinstance(scene["drawing_order"], list), "分镜字段类型错误")
         require(isinstance(scene["estimated_duration"], (float, int)) and math.isfinite(scene["estimated_duration"])

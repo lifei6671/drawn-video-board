@@ -96,7 +96,8 @@ class MigrationTests(unittest.TestCase):
                     self.assertFalse(symbols(original) - symbols(migrated) - retired, item["path"])
         self.assertEqual(modified, {"assets/drawing-hand-clean.png", "assets/drawing-hand.png",
                                   "scripts/stream_render.py", "webapp/server.py", "scripts/render_stream_whiteboard.py",
-                                  "scripts/merge_scenes.py", "video_renderer/align.mjs", "video_renderer/render.mjs", "SKILL.md"})
+                                  "scripts/merge_scenes.py", "video_renderer/align.mjs", "video_renderer/render.mjs",
+                                  "video_renderer/src/root.tsx", "video_renderer/package.json", "SKILL.md"})
         self.assertFalse((REPO / "cs_board_video/engine/stream_render.py").exists())
 
     def test_original_presets_references_prompts_and_planning(self):

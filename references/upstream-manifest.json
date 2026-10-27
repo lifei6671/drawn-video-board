@@ -454,14 +454,14 @@
     {
       "path": "video_renderer/package.json",
       "source_sha256": "cb2c8a73db67fa57bf5d67e61e74a8867cb43d2ab12c4f836213b723e1f00397",
-      "migrated_sha256": "cb2c8a73db67fa57bf5d67e61e74a8867cb43d2ab12c4f836213b723e1f00397",
-      "adaptation": "Unmodified migration"
+      "migrated_sha256": "c20243349f0f3026bb3f152c786945c9a53588b4f5394d9e69c92c6bd6565738",
+      "adaptation": "Add deterministic collage frame evaluator test script; preserve dependencies"
     },
     {
       "path": "video_renderer/render.mjs",
       "source_sha256": "1d8d24b839639b1d9d98d0f6384ed6f43adbe3f2923038065e55ddae62e2e71f",
-      "migrated_sha256": "74a5381890190803782a1a43262dd7cb1eabd9000d38f7006e8e43edd5c7b8a3",
-      "adaptation": "Project-local bundle output; configurable CRF and concurrency; original Web defaults retained"
+      "migrated_sha256": "19e7f77acd22481a2ca9596052ad1bf221afcc2b73251d3915d0274cf1064bcc",
+      "adaptation": "Project-local bundle output; configurable CRF and concurrency; select CollageVideo only for compositionType collage, retain original Web defaults"
     },
     {
       "path": "video_renderer/src/index.tsx",
@@ -472,8 +472,8 @@
     {
       "path": "video_renderer/src/root.tsx",
       "source_sha256": "ede086f06e48087dfd96acf456d0953bde7d6ea7b8b1ac88a44592b8cc14ce2b",
-      "migrated_sha256": "ede086f06e48087dfd96acf456d0953bde7d6ea7b8b1ac88a44592b8cc14ce2b",
-      "adaptation": "Unmodified migration"
+      "migrated_sha256": "c890723e859b6f43dd9cf39d0ca43fcb3b8f22c68115f944ca5c1cba1712c810",
+      "adaptation": "Register isolated CollageVideo alongside unchanged DynamicInfographic composition"
     },
     {
       "path": "video_renderer/src/types.ts",

@@ -45,7 +45,7 @@ const serveUrl = await bundle({
 const rendererOptions = browserExecutable ? {browserExecutable} : {};
 const composition = await selectComposition({
   serveUrl,
-  id: 'DynamicInfographic',
+  id: inputProps.compositionType === 'collage' ? 'CollageVideo' : 'DynamicInfographic',
   inputProps,
   logLevel: 'warn',
   timeoutInMilliseconds: 120000,

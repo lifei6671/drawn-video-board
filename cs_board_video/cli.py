@@ -21,6 +21,14 @@ def parser():
     init.add_argument("--script", required=True)
     init.add_argument("--content", default="content")
     init.add_argument("--config", help="初始项目配置 JSON")
+    init.add_argument("--mode", choices=("whiteboard", "collage"), help="手绘或拼贴动画；省略时使用配置")
+    collage = commands.add_parser("collage", help="独立元素拼贴动画")
+    collage_actions = collage.add_subparsers(dest="action", required=True)
+    for action in ("request", "import", "validate", "prompts"):
+        leaf = collage_actions.add_parser(action)
+        leaf.add_argument("--project", required=True)
+        if action == "import":
+            leaf.add_argument("--file", required=True)
     for name in ("status", "resume", "render", "compose", "validate", "approve", "review", "revise", "asset"):
         sub = commands.add_parser(name)
         sub.add_argument("--project", required=True)
@@ -29,7 +37,7 @@ def parser():
             selection.add_argument("--all", action="store_true")
             selection.add_argument("--scene")
         if name in ("approve", "review", "revise"):
-            sub.add_argument("--stage", required=True, choices=("storyboard", "typography", "style", "image_mode", "audio", "preview"))
+            sub.add_argument("--stage", required=True, choices=("storyboard", "typography", "style", "image_mode", "audio", "preview", "collage"))
             sub.add_argument("--scene")
         if name == "approve":
             sub.add_argument("--digest", required=True)
@@ -135,6 +143,10 @@ def asset_import(p, source, dest, replace=False):
 
 def dispatch(p, a):
     c, action = a.command, getattr(a, "action", None)
+    from . import collage
+    if p and collage.enabled(p) and c not in ("asset", "materials"):
+        return collage.dispatch(p, a)
+    require(c != "collage" and getattr(a, "stage", None) != "collage", "该命令需要 init --mode collage 创建的项目")
     if c == "pen":
         from . import pens
         return {"pens": pens.catalog()} if action == "list" else pens.select(p, a.type)
@@ -391,7 +403,12 @@ def main(argv=None):
             voice_ok = not isinstance(voice, dict) or voice.get("status") == "PASS"
             code = 0 if result["ffmpeg"] and result["ffprobe"] and voice_ok else 3
         elif a.command == "init":
-            project = initialize(a.content, a.name, a.script, read_json(Path(a.config)) if a.config else None)
+            config = read_json(Path(a.config)) if a.config else {}
+            require(isinstance(config, dict), "初始配置必须是 JSON 对象")
+            if a.mode:
+                config.update(render_engine="remotion" if a.mode == "collage" else "whiteboard",
+                              composition_type="collage" if a.mode == "collage" else "standard")
+            project = initialize(a.content, a.name, a.script, config)
             result = {"project": str(project.root), "state": "script_ready"}
             code = 0
         elif (a.command, getattr(a, "action", None)) in (("pen", "list"), ("style", "list"), ("typography", "fonts"), ("materials", "list")):

@@ -116,7 +116,7 @@ def presets():
 
 def prompts(p):
     """Original style, composition and character prompts, without API generation."""
-    from . import workflow as w, rolls
+    from . import workflow as w, rolls, direction
     w.mode_ready(p)
     generated = []
     infographic = p.data["config"].get("render_engine") == "remotion"
@@ -171,10 +171,12 @@ def prompts(p):
                 prompt += f"\n本镜为 {spec['type'].upper()}-roll，展示方式 {spec['mode']}，叙事依据：{spec['reason']}。"
                 if spec["type"] == "b":
                     prompt += "聚焦这句文案涉及的细节、动作或证据，保持同一画风与角色；图片只画辅助镜头本身，不预先拼接主画面或画中画边框。"
+            prompt += direction.prompt(scene)
             p.path(f"scenes/{sid}/prompt.md").write_text(prompt, encoding="utf-8")
             p.save(f"scenes/{sid}/prompt-context.json", {"upstream_function": "build_board_prompt",
                    "style": style, "references": local_refs, "panels": panels, "pen_type": p.data["config"].get("pen_type", "marker"),
-                   "visual_text": scene.get("visual_text", []), "visual_mode": scene.get("visual_mode", "illustration")})
+                   "visual_text": scene.get("visual_text", []), "visual_mode": scene.get("visual_mode", "illustration"),
+                   **({"visual_plan": scene["visual_plan"]} if "visual_plan" in scene else {})})
             if scene.get("roll"):
                 context = p.load(f"scenes/{sid}/prompt-context.json")
                 context["roll"] = rolls.settings(scene)
@@ -202,6 +204,15 @@ def plan(p, duration, candidate=None, *, narrative_only=False, deck_only=False):
         style = style_name(p, module) if infographic else module.DEFAULT_STYLE
         if candidate is None:
             request = module.plan_request(copy, duration, style, infographic=infographic, phrase_timeline=phrases)
+            from .direction import PLANNING_PROMPT as DIRECTION_PROMPT
+            if not infographic:
+                request["prompt"] = request["prompt"].replace(
+                    "每幕只讲一个清晰事件，禁止加入原文没有的童年、旅行、花鸟、山水、宠物等内容。",
+                    "每幕只表达一个清晰观点；隐喻、幽默和反差可使用原文未直接点名的物件或场景，但须解释关联，不得编造人物经历或事实。")
+                request["prompt"] += DIRECTION_PROMPT
+            else:
+                request["visual_plans"] = [{"scene_id": s["scene_id"], "visual_plan": s.get("visual_plan")} for s in p.scenes()]
+                request["prompt"] += "\n布局阶段沿用 visual_plans 中已批准的表达与素材安排，不自动更换用户图片或将照片重新生成。"
             if not infographic:
                 from .rolls import PLANNING_PROMPT
                 if p.data["config"].get("render_engine", "whiteboard") == "whiteboard":
@@ -250,6 +261,8 @@ def plan(p, duration, candidate=None, *, narrative_only=False, deck_only=False):
                 scene["visual_mode"] = raw["visual_mode"]
             if "roll" in raw:
                 scene["roll"] = raw["roll"]
+            if "visual_plan" in raw:
+                scene["visual_plan"] = deepcopy(raw["visual_plan"])
     from .workflow import validate_storyboard
     saved_scenes = p.scenes
     p.scenes = lambda: scenes

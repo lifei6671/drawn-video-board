@@ -166,7 +166,8 @@ def initialize(content, name, script, config=None):
     settings = {"width": 1920, "height": 1080, "fps": 30, "ink_path": "skeleton",
                 "color_fill": "paint", "stroke_detail": 96, "bare_tip": False,
                 "canvas_hex": "#F5EBD7", "crf": 20, "subtitles": True,
-                "render_engine": "whiteboard", "include_key_text": False, "pen_text": "", "pen_type": "marker"}
+                "render_engine": "whiteboard", "composition_type": "standard",
+                "include_key_text": False, "pen_text": "", "pen_type": "marker"}
     if config:
         require(isinstance(config, dict) and not set(config) - set(settings), "配置包含未知字段")
         settings.update(config)
@@ -202,6 +203,9 @@ def validate_config(config):
     require(all(type(config.get(x)) is bool for x in ("bare_tip", "subtitles")), "bare_tip/subtitles 必须为布尔值")
     require(bool(re.fullmatch(r"#[0-9a-fA-F]{6}", config.get("canvas_hex", ""))), "底色必须是 #RRGGBB")
     require(config.get("render_engine", "whiteboard") in ("whiteboard", "remotion"), "原渲染分支为 whiteboard/remotion")
+    require(config.get("composition_type", "standard") in ("standard", "collage"), "未知作品类型")
+    require(config.get("composition_type") != "collage" or config.get("render_engine") == "remotion",
+            "拼贴动画使用 Remotion 渲染引擎")
     if config.get("render_engine") == "remotion":
         require(config["fps"] == 30, "原 Remotion 时间轴固定使用 30fps")
         require(config.get("pen_type", "marker") == "marker", "钢笔选择用于白板绘制引擎")

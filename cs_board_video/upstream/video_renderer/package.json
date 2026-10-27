@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit",
+    "test:collage": "node test-collage-motion.mjs",
     "render": "node render.mjs",
     "align": "node align.mjs"
   },
